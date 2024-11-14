@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import {Header} from "@/wedgets/layout/Header/ui/Header";
 
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
   return (
     <html lang="en">
       <body>
+        <Header/>
         {children}
       </body>
     </html>
