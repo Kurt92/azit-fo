@@ -2,10 +2,11 @@
 // export const dynamic = "force-dynamic"; // 기본 레이아웃 비활성화
 
 import "./login.css"
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import { Box, TextField, Button, Typography, Container } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
+
 
 
 // MUI 테마 커스터마이징
@@ -51,6 +52,33 @@ export default function Page() {
         // e.preventDefault();
         console.log("Submitted Data:", { id, password });
     };
+
+
+    useEffect(() => {
+
+        const checkRefToken = async() => {
+            try {
+                const res = await axios.post(
+                    "/api/auth/token",
+                    {},
+                    {
+                        withCredentials: true,
+                        headers: {
+                            "Content-Type": "application/json", // JSON 요청
+                        },
+                    }
+                );
+
+                if(res.status === 200) {
+                    console.log("Access Token:", res.data.accessToken);
+                    // router.push("/main")
+                } else console.log("Token not found.");
+            } catch (err) {console.error("ref token find err", err);}
+        }
+
+        checkRefToken();
+    }, []);
+
 
     return (
         <ThemeProvider theme={theme}>
