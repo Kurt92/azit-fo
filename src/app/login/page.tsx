@@ -8,8 +8,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-
-
 // MUI 테마 커스터마이징
 const theme = createTheme({
     palette: {
