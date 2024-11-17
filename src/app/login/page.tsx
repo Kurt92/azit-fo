@@ -6,6 +6,7 @@ import {useEffect, useState} from "react";
 import { Box, TextField, Button, Typography, Container } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 
 
@@ -32,6 +33,8 @@ const theme = createTheme({
 export default function Page() {
     const [id, setId] = useState("");
     const [password, setPassword] = useState("");
+    const router = useRouter();
+
 
     let login = () => {
         axios
@@ -58,20 +61,13 @@ export default function Page() {
 
         const checkRefToken = async() => {
             try {
-                const res = await axios.post(
+                const res = await axios.get(
                     "/api/auth/token",
-                    {},
-                    {
-                        withCredentials: true,
-                        headers: {
-                            "Content-Type": "application/json", // JSON 요청
-                        },
-                    }
+                    {withCredentials: true,}
                 );
 
                 if(res.status === 200) {
-                    console.log("Access Token:", res.data.accessToken);
-                    // router.push("/main")
+                    router.push("/main")
                 } else console.log("Token not found.");
             } catch (err) {console.error("ref token find err", err);}
         }
