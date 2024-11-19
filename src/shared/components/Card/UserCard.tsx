@@ -4,8 +4,18 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import {IconButton} from "@mui/material";
 
-export default function ActionAreaCard() {
+export default function UserCard() {
+
+    const [isFavorite, setIsFavorite] = React.useState(false); // 즐겨찾기 상태 관리
+
+    const toggleFavorite = () => {
+        setIsFavorite((prev) => !prev); // 상태 토글
+    };
+
     return (
         <Card sx={{ maxWidth: 345, margin:2, backgroundColor: '#424242'}}>
             <CardActionArea className={"flex"}>
@@ -15,6 +25,9 @@ export default function ActionAreaCard() {
                 {/*    image="/static/images/cards/contemplative-reptile.jpg"*/}
                 {/*    alt="green iguana"*/}
                 {/*/>*/}
+                <IconButton onClick={toggleFavorite} sx={{ color: '#ffc107' }}>
+                    {isFavorite ? <StarIcon /> : <StarBorderIcon />}
+                </IconButton>
                 <CardContent className={"flex-col"}>
                     <Typography gutterBottom variant="body2" component="div" sx={{ color: '#ffffff', fontSize: '12px'}}>
                         대표캐릭터

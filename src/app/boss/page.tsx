@@ -3,7 +3,7 @@
 import "./boss.css"
 import CustomBtn from "@/shared/components/Button/CustomBtn";
 import React from "react";
-import ActionAreaCard from "@/shared/components/Card/ActionAreaCard";
+import UserCard from "@/shared/components/Card/UserCard";
 import {Divider} from "@mui/material";
 
 export default function Boss() {
@@ -20,7 +20,7 @@ export default function Boss() {
                     <div className={"user-box"}>
                         <div className={"bookmark"}>
                             <div>즐겨찾기</div>
-                            <ActionAreaCard/>
+                            <UserCard/>
                         </div>
 
                         <Divider
@@ -33,7 +33,7 @@ export default function Boss() {
 
                         <div className={"user-list"}>
                             <div>친구목록</div>
-                            <ActionAreaCard/>
+                            <UserCard/>
                         </div>
                     </div>
                     <div className={"sixman-box"}>
