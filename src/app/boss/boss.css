@@ -1,0 +1,30 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* 수직 가운데 정렬 */
+    height: 100%
+
+
+}
+
+.user-box {
+    border: 1px solid white;
+    width: 350px;
+    height: 900px;
+    margin-right: 3rem;
+
+}
+
+.sixman-box {
+    border: 1px solid white;
+    width: 600px;
+    height: 900px;
+}
+
+.btn-area {
+    display: flex;
+    justify-content: flex-end;
+    width: 50%;
+
+}

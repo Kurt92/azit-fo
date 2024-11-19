@@ -12,8 +12,8 @@ export const Header = () => {
                 </Link>
                 <nav>
                     <ul className="header-nav">
-                        <li><a href="/about">About</a></li>
-                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/boss">보스고?</a></li>
+                        <li><a href="/contact">제작 계산기</a></li>
                     </ul>
                 </nav>
             </header>
