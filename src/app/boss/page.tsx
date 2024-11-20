@@ -2,10 +2,11 @@
 
 import "./boss.css"
 import CustomBtn from "@/shared/components/Button/CustomBtn";
-import React from "react";
+import React, {useEffect} from "react";
 import UserCard from "@/shared/components/Card/UserCard";
 import {Divider} from "@mui/material";
 import DraggableList from "@/shared/components/Dnd/DraggableList";
+import axios from "axios";
 
 export default function Boss() {
 
@@ -13,6 +14,19 @@ export default function Boss() {
     const handleClick = () => {
         alert('Button clicked!');
     };
+
+    useEffect(() => {
+        axios
+            .get("/api/back/sample1",
+                { withCredentials: true })
+            .then((res) => {
+                console.log(res)
+
+            })
+            .catch(() => {
+                console.log("failed");
+            })
+    }, []);
 
     return (
         <>
