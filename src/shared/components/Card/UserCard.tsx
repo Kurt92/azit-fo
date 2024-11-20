@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -25,7 +27,7 @@ export default function UserCard() {
                 {/*    image="/static/images/cards/contemplative-reptile.jpg"*/}
                 {/*    alt="green iguana"*/}
                 {/*/>*/}
-                <IconButton onClick={toggleFavorite} sx={{ color: '#ffc107' }}>
+                <IconButton component={"div"} onClick={toggleFavorite} sx={{ color: '#ffc107' }}>
                     {isFavorite ? <StarIcon /> : <StarBorderIcon />}
                 </IconButton>
                 <CardContent className={"flex-col"}>

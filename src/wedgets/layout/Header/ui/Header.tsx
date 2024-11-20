@@ -1,6 +1,7 @@
 import './Header.css'
 import React from "react";
 import Link from "next/link";
+import {Avatar} from "@mui/material";
 
 export const Header = () => {
 
@@ -16,6 +17,7 @@ export const Header = () => {
                         <li><a href="/contact">제작 계산기</a></li>
                     </ul>
                 </nav>
+                <Avatar className={"avatar"}>H</Avatar>
             </header>
         </>
     )

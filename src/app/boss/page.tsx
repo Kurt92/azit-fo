@@ -1,10 +1,11 @@
-"use client"
+'use client'
 
 import "./boss.css"
 import CustomBtn from "@/shared/components/Button/CustomBtn";
 import React from "react";
 import UserCard from "@/shared/components/Card/UserCard";
 import {Divider} from "@mui/material";
+import DraggableList from "@/shared/components/Dnd/DraggableList";
 
 export default function Boss() {
 
@@ -37,7 +38,7 @@ export default function Boss() {
                         </div>
                     </div>
                     <div className={"sixman-box"}>
-
+                        <DraggableList />
                     </div>
                 </div>
                 <div className={"btn-area"}>
