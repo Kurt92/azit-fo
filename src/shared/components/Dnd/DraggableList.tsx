@@ -1,27 +1,31 @@
-'use client'
+'use client';
 
-import React, {useState} from 'react';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
-import {Box, Paper, Typography, IconButton, Checkbox, FormControlLabel, Divider} from '@mui/material';
+import React, { useState } from 'react';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import { Box, Paper, Typography, IconButton, Checkbox, FormControlLabel, Divider } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 type Item = {
     id: string;
     content: string;
-    checked: boolean;
+    checks: {
+        aaa: boolean;
+        bbb: boolean;
+        ccc: boolean;
+    };
 };
 
 const initialItems: Item[] = [
-    { id: '1', content: 'Item 1', checked: false },
-    { id: '2', content: 'Item 2', checked: false },
-    { id: '3', content: 'Item 3', checked: false },
+    { id: '1', content: 'Item 1', checks: { aaa: false, bbb: false, ccc: false } },
+    { id: '2', content: 'Item 2', checks: { aaa: false, bbb: false, ccc: false } },
+    { id: '3', content: 'Item 3', checks: { aaa: false, bbb: false, ccc: false } },
 ];
 
 export default function DraggableList() {
     const [items, setItems] = useState(initialItems);
 
     const onDragEnd = (result: any) => {
-        const {destination, source} = result;
+        const { destination, source } = result;
 
         if (!destination) return;
 
@@ -32,10 +36,12 @@ export default function DraggableList() {
         setItems(updatedItems);
     };
 
-    const toggleCheckbox = (id: string) => {
+    const toggleCheckbox = (id: string, key: keyof Item['checks']) => {
         setItems((prevItems) =>
             prevItems.map((item) =>
-                item.id === id ? { ...item, checked: !item.checked } : item
+                item.id === id
+                    ? { ...item, checks: { ...item.checks, [key]: !item.checks[key] } }
+                    : item
             )
         );
     };
@@ -47,7 +53,7 @@ export default function DraggableList() {
                     <Box
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        sx={{width: '100%', maxWidth: "95%", margin: 'auto', mt: 5}}
+                        sx={{ width: '100%', maxWidth: '95%', margin: 'auto', mt: 5 }}
                     >
                         {items.map((item, index) => (
                             <Draggable key={item.id} draggableId={item.id} index={index}>
@@ -67,13 +73,12 @@ export default function DraggableList() {
                                             sx={{
                                                 cursor: 'grab',
                                                 color: 'primary.main',
-                                                mr: 2, // 아이콘과 텍스트 사이의 간격 조정
+                                                mr: 2,
                                             }}
                                         >
-                                            <DragIndicatorIcon/>
+                                            <DragIndicatorIcon />
                                         </IconButton>
 
-                                        {/* 아이템 내용 */}
                                         <Paper
                                             sx={{
                                                 padding: 2,
@@ -88,38 +93,44 @@ export default function DraggableList() {
 
                                             <Divider
                                                 sx={{
-                                                    my: 2,                  // 상하 간격 추가
-                                                    mx: 2,                  // 양쪽 간격 추가
-                                                    borderColor: 'grey.300' // 선 색상 설정
+                                                    my: 2,
+                                                    mx: 2,
+                                                    borderColor: 'grey.300',
                                                 }}
                                             />
 
-                                            <div className={"flex-col"}>
-                                                <Typography>
-                                                    <FormControlLabel
-                                                        control={
-                                                            <Checkbox
-                                                                checked={item.checked}
-                                                                onChange={() => toggleCheckbox(item.id)}
-                                                                color="default"
-                                                            />
-                                                        }
-                                                        label="AAA"
-                                                    />
-                                                </Typography>
-                                                <Typography>
-                                                    <FormControlLabel
-                                                        control={
-                                                            <Checkbox
-                                                                checked={item.checked}
-                                                                onChange={() => toggleCheckbox(item.id)}
-                                                                color="default"
-                                                            />
-                                                        }
-                                                        label="AAA"
-                                                    />
-                                                </Typography>
-                                            </div>
+                                            <Box sx={{display: 'flex', flexDirection: 'column',}}>
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={item.checks.aaa}
+                                                            onChange={() => toggleCheckbox(item.id, 'aaa')}
+                                                            color="default"
+                                                        />
+                                                    }
+                                                    label="AAA"
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={item.checks.bbb}
+                                                            onChange={() => toggleCheckbox(item.id, 'bbb')}
+                                                            color="default"
+                                                        />
+                                                    }
+                                                    label="BBB"
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Checkbox
+                                                            checked={item.checks.ccc}
+                                                            onChange={() => toggleCheckbox(item.id, 'ccc')}
+                                                            color="default"
+                                                        />
+                                                    }
+                                                    label="CCC"
+                                                />
+                                            </Box>
                                         </Paper>
                                     </Box>
                                 )}
