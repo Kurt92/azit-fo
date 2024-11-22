@@ -2,8 +2,16 @@ import './Header.css'
 import React from "react";
 import Link from "next/link";
 import {Avatar} from "@mui/material";
+import CustomBtn from "@/shared/components/Button/CustomBtn";
+import { useRouter } from "next/navigation";
 
 export const Header = () => {
+
+    const router = useRouter();
+
+    const login = () => {
+        router.push("/login")
+    }
 
     return (
         <>
@@ -17,7 +25,10 @@ export const Header = () => {
                         <li><a href="/contact">제작 계산기</a></li>
                     </ul>
                 </nav>
-                <Avatar className={"avatar"}>H</Avatar>
+                    <div className={"avatar-area"}>
+                        <CustomBtn label="로그인" onClick={login} color="primary" variant="outlined"/>
+                        {/*<Avatar>H</Avatar>*/}
+                    </div>
             </header>
         </>
     )

@@ -9,12 +9,16 @@ interface RefreshTokenResponse {
 
 export async function GET() {
 
+    console.log('auth in');
     const cookieStore = cookies();
     const refreshToken = cookieStore.get("kurt_refresh_token");
+
+    console.log('refreshToken``````````````` : ' + refreshToken);
 
     if (!refreshToken) {
         return NextResponse.json({ success: false, message: "have to relogin" }, { status: 401 });
     }
+    console.log('auth in2');
 
     try {
         // Auth 서버에 Refresh Token을 사용해 Access Token 요청
@@ -30,7 +34,8 @@ export async function GET() {
         if (!response.ok) {
             throw new Error("Failed to refresh token");
         }
-
+        console.log('auth in3');
+        console.log(response.headers.get("set-cookie"))
         const text = await response.text();
         return NextResponse.json({ success: true, message: text }, {
             headers: {

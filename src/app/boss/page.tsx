@@ -17,7 +17,7 @@ export default function Boss() {
 
     useEffect(() => {
         axios
-            .get("/api/back/sample1",
+            .get("/api/back/board/sample1",
                 { withCredentials: true })
             .then((res) => {
                 console.log(res)
