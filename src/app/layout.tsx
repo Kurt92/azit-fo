@@ -16,7 +16,7 @@ export default function RootLayout({children}: { children: React.ReactNode }) {
     const pathname = usePathname();
 
     // 로그인 페이지에서는 레이아웃 비활성화
-    if (pathname === "/login") {
+    if (pathname === "/login" || pathname === "/login/signup") {
         return (
             <html lang="en">
                 <body>

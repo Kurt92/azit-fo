@@ -41,7 +41,7 @@ export default function Page() {
                 { withCredentials: true })
             .then((res) => {
                 console.log(res)
-
+                router.push("/main")
             })
             .catch(() => {
                 console.log("failed");
@@ -147,7 +147,7 @@ export default function Page() {
                         sx={{ color: "text.primary", marginTop: "1rem" }}
                     >
                         계정이 없으신가요?{" "}
-                        <a href="/signup" style={{ color: "#888" }}>
+                        <a href="/login/signup" style={{ color: "#888" }}>
                             회원가입
                         </a>
                     </Typography>

@@ -68,7 +68,7 @@ export async function middleware(req: NextRequest) {
         //     console.log('Failed to refresh token:', res.status);
         // }
 
-        return NextResponse.next();
+        // return NextResponse.next();
     }
 
     // 모든 토큰이 있는 경우 요청을 계속 진행

@@ -1,0 +1,7 @@
+.signup-container {
+    display: flex;
+    justify-content: center; /* 수평 가운데 정렬 */
+    align-items: center; /* 수직 가운데 정렬 */
+    min-height: 100%; /* 화면 전체 높이 */
+    background-color: #333; /* 선택적으로 배경 색상 추가 */
+}
