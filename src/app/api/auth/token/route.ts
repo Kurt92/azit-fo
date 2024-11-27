@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
 interface RefreshTokenResponse {
     success: boolean;
@@ -11,7 +12,9 @@ export async function GET() {
 
     console.log('auth in');
     const cookieStore = cookies();
+    const accessToken = cookieStore.get("kurt_access_token");
     const refreshToken = cookieStore.get("kurt_refresh_token");
+
 
     console.log('refreshToken``````````````` : ' + refreshToken);
 
@@ -36,8 +39,26 @@ export async function GET() {
         }
         console.log('auth in3');
         console.log(response.headers.get("set-cookie"))
+
+        const accessTokenMatch = response.headers.get("set-cookie")?.match(/kurt_access_token=([^;]+)/);
+        const accessTokenVal = accessTokenMatch ? accessTokenMatch[1] : null;
+        let decodedJWT = null;
+
+        if (!accessTokenVal) {
+            console.error("Access token not found in Set-Cookie header.");
+        } else {
+            try {
+                decodedJWT = jwt.verify(accessTokenVal, process.env.JWT_SECRET as string); // JWT 검증 및 디코딩
+                console.log("Decoded Token:", decodedJWT); // 디코딩된 정보 출력
+            } catch (error) {
+                console.error("Invalid or expired token");
+            }
+        }
+
+        console.log()
+
         const text = await response.text();
-        return NextResponse.json({ success: true, message: text }, {
+        return NextResponse.json({ success: true, message: text, user: decodedJWT}, {
             headers: {
                 "Set-Cookie": response.headers.get("set-cookie") || "", // 쿠키를 Next.js의 응답 헤더로 전달
             },

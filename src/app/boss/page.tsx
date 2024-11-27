@@ -7,26 +7,29 @@ import UserCard from "@/shared/components/Card/UserCard";
 import {Divider} from "@mui/material";
 import DraggableList from "@/shared/components/Dnd/DraggableList";
 import axios from "axios";
+import {UserData} from "@/shared/util/ReactQuery/UserData";
+import {sample1} from "@/shared/util/ApiReq/boss/req";
 
 export default function Boss() {
 
+    const { data, isLoading, isError } = UserData(["sampleData"], sample1);
 
     const handleClick = () => {
         alert('Button clicked!');
     };
 
-    useEffect(() => {
-        axios
-            .get("/api/back/board/sample1",
-                { withCredentials: true })
-            .then((res) => {
-                console.log(res)
-
-            })
-            .catch(() => {
-                console.log("failed");
-            })
-    }, []);
+    // useEffect(() => {
+    //     axios
+    //         .get("/api/back/board/sample1",
+    //             { withCredentials: true })
+    //         .then((res) => {
+    //             console.log(res)
+    //
+    //         })
+    //         .catch(() => {
+    //             console.log("failed");
+    //         })
+    // }, []);
 
     return (
         <>
@@ -56,7 +59,7 @@ export default function Boss() {
                     </div>
                 </div>
                 <div className={"btn-area"}>
-                    <CustomBtn label="식스맨 변경" onClick={handleClick} color="primary" variant="outlined"  />
+                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined"  />
                 </div>
             </div>
 
