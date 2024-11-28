@@ -1,8 +1,11 @@
 'use client'
 
+import './BannerSlider.css'
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import {useEffect, useState} from "react";
+import axios from "axios";
 
 const settings = {
     dots: true,
@@ -14,16 +17,34 @@ const settings = {
     autoplaySpeed: 4000,
 };
 
+type Event = {
+    Thumbnail: string;
+    Title: string;
+    Link: string;
+};
+
 function BannerSlider() {
+
+    const [events, setEvents] = useState<Event[]>([]);
+    const [bannerImg, setBannerImg] = useState();
+    const [link, setLink] = useState();
+
+    useEffect(() => {
+        axios.get("/api/back/event", {withCredentials: true,})
+            .then((res)=>{
+                console.log(res.data.data.events);
+                setEvents(res.data.data.events);
+            })
+            .catch()
+    }, []);
+
     return (
         <Slider {...settings}>
-            <div>
-                <img src="/img/logo/logo_sample.png" alt="배너 1" />
-            </div>
-            <div>
-                <img src="/img/logo/logo_sample.png" alt="배너 2" />
-            </div>
-            {/* 추가 배너 */}
+            {events.map((item, index)=> (
+                <div key={index}>
+                    <img src={item.Thumbnail} alt={item.Title} />
+                </div>
+            ))}
         </Slider>
     );
 }
