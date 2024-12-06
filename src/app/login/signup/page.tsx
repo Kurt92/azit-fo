@@ -54,7 +54,7 @@ export default function SignupPage(): JSX.Element {
         }
 
         axios
-            .post("http://localhost:8011/signup", { accountId, password })
+            .post("http://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/signup", { accountId, password })
             .then((res) => {
                 console.log("Signup successful:", res);
                 alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
@@ -73,7 +73,7 @@ export default function SignupPage(): JSX.Element {
         }
 
         axios
-            .get(`http://localhost:8011/duplicate-check`, { params: { accountId: accountId } })
+            .get(`http://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/duplicate-check`, { params: { accountId: accountId } })
             .then((res) => {
                 if (res.data) {
                     alert("이미 사용 중인 아이디입니다.");

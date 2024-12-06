@@ -25,7 +25,8 @@ export async function GET() {
 
     try {
         // Auth 서버에 Refresh Token을 사용해 Access Token 요청
-        const response = await fetch("http://localhost:8011/auth/auto-login", {
+
+        const response = await fetch("https://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/auth/auto-login", {
             method: "GET",
             credentials: "include", // 쿠키를 포함
             headers: {

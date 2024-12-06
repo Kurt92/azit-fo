@@ -36,7 +36,7 @@ export default function Page() {
 
     let login = () => {
         axios
-            .post("http://localhost:8011/auth/login",
+            .post("https://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/auth/login",
                 {id, password},
                 { withCredentials: true })
             .then((res) => {
