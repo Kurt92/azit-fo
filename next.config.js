@@ -12,6 +12,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false, // Strict Mode 비활성화
+    env: {
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL, // .env 파일에서 환경 변수 가져오기
+    },
 };
 
 module.exports = nextConfig;
