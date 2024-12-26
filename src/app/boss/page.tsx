@@ -9,10 +9,13 @@ import DraggableList from "@/shared/components/Dnd/DraggableList";
 import axios from "axios";
 import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {sample1} from "@/shared/util/ApiReq/boss/req";
+import {user} from "@/shared/util/ApiReq/user/req";
 
 export default function Boss() {
 
-    const { data, isLoading, isError } = UserData(["sampleData"], sample1);
+    const { data: sampleData, isLoading: isSampleLoading, isError: isSampleError } = UserData(["sampleData"], sample1);
+    const { data: userData, isLoading: isUserLoading, isError: isUserError } = UserData(["userData"], user);
+
 
     const handleClick = () => {
         alert('Button clicked!');

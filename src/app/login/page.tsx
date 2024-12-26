@@ -7,6 +7,8 @@ import { Box, TextField, Button, Typography, Container } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import {UserData} from "@/shared/util/ReactQuery/UserData";
+import {user} from "@/shared/util/ApiReq/user/req";
 
 // MUI 테마 커스터마이징
 const theme = createTheme({
@@ -32,10 +34,11 @@ export default function Page() {
     const [id, setId] = useState("");
     const [password, setPassword] = useState("");
     const router = useRouter();
+    const { data: userData, isLoading: isUserLoading, isError: isUserError } = UserData(["userData"], user);
 
 
     let login = () => {
-        const domain = process.env.NEXT_PUBLIC_API_URL;
+        const domain = process.env.NEXT_AUTH_URL;
         axios
             .post(`${domain}/auth/login`,
                 {id, password},
@@ -58,21 +61,33 @@ export default function Page() {
 
     useEffect(() => {
 
-        const checkRefToken = async() => {
-            try {
-                const res = await axios.get(
-                    "/api/auth/token",
-                    {withCredentials: true,}
-                );
+        // 직접 auth 서버 호출하는 방식에서 리엑트쿼리로 변경
+        // const checkRefToken = async() => {
+        //     try {
+        //         const res = await axios.get(
+        //             "/api/auth/token",
+        //             {withCredentials: true,}
+        //         );
+        //
+        //         if(res.status === 200) {
+        //             // router.push("/main")
+        //             console.log(res);
+        //         } else console.log("Token nsot found.");
+        //     } catch (err) {console.error("ref token find err", err);}
+        // }
+        //
+        // checkRefToken();
 
-                if(res.status === 200) {
-                    router.push("/main")
-                } else console.log("Token not found.");
-            } catch (err) {console.error("ref token find err", err);}
+        if (isUserLoading) console.log("Loading...");
+        if (isUserError) console.log("Error fetching token!");
+        if (userData) {
+            console.log("Account ID:", userData);
+            router.push("/main")
         }
 
-        checkRefToken();
-    }, []);
+
+
+    }, [userData, isUserLoading, isUserError]);
 
 
     return (

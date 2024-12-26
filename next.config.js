@@ -13,7 +13,10 @@
 const nextConfig = {
     reactStrictMode: false, // Strict Mode 비활성화
     env: {
-        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL, // .env 파일에서 환경 변수 가져오기
+        // .env 파일에서 환경 변수 가져오기
+        NEXT_AUTH_URL: process.env.NEXT_AUTH_URL,
+        NEXT_API_URL: process.env.NEXT_API_URL,
+        NEXT_GATEWAY_URL: process.env.NEXT_GATEWAY_URL,
     },
 };
 

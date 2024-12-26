@@ -18,6 +18,8 @@ export default function UserCard() {
         setIsFavorite((prev) => !prev); // 상태 토글
     };
 
+
+
     return (
         <Card sx={{ maxWidth: 345, margin:2, backgroundColor: '#424242'}}>
             <CardActionArea className={"flex"}>

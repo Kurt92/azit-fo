@@ -32,7 +32,7 @@ function BannerSlider() {
     useEffect(() => {
         axios.get("/api/back/event", {withCredentials: true,})
             .then((res)=>{
-                console.log(res.data.data.events);
+                // console.log(res.data.data.events);
                 setEvents(res.data.data.events);
             })
             .catch()
