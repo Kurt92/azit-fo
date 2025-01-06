@@ -3,100 +3,116 @@
 import "./boss.css"
 import CustomBtn from "@/shared/components/Button/CustomBtn";
 import React, {useEffect, useState} from "react";
-import {Divider} from "@mui/material";
+import {Divider, Box} from "@mui/material";
 import DraggableList from "@/shared/components/Dnd/DraggableList";
 import axios from "axios";
 import {UserData} from "@/shared/util/ReactQuery/UserData";
-import {sample1} from "@/shared/util/ApiReq/boss/req";
 import {user} from "@/shared/util/ApiReq/user/req";
-import {DataItem, Expedition} from "@/shared/types/ExpeditionInterface";
+import {IDataItem} from "@/shared/types/ExpeditionInterface";
 import UserCard from "@/shared/components/Card/UserCard";
-
+import {IUser} from "@/shared/types/UserInterface";
 
 export default function Boss() {
+    // React Query로 사용자 데이터 로드
+    const { data: userData, isLoading: isUserLoading, isError: isUserError } = UserData<undefined, IUser>(["userData"], user);
 
-    const { data: userData, isLoading: isUserLoading, isError: isUserError } = UserData(["userData"], user);
-    // 논타입스크립트에서 state 설정
-    // const [expeditions, setExpeditions] = useState([]);
+    // 상태 관리
+    const [dataItem, setDataItem] = useState<IDataItem[]>([]);
+    const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-    // 타입스크립트에서 state 인터페이스 설정, 타입을 명시적으로 하고 인터페이스파일을 따로 빼서 정의
-    const [expeditions, setExpeditions] = useState<Expedition[]>([]);
-    const [dataItem, setDataItem] = useState<DataItem[]>([]);
-
-
-
-
+    // 버튼 클릭 핸들러
     const handleClick = () => {
         alert('Button clicked!');
-        console.log(dataItem);
     };
 
-    // useEffect(() => {
-    //     axios
-    //         .get("/api/back/board/sample1",
-    //             { withCredentials: true })
-    //         .then((res) => {
-    //             console.log(res)
-    //
-    //         })
-    //         .catch(() => {
-    //             console.log("failed");
-    //         })
-    // }, []);
-
+    // 데이터 로드
     useEffect(() => {
-
-        //리엑트쿼리에 값 불러오기전 호출을 한번해서 호출완료후에 엑시오스요청하도록 조건추가
-        if (!userData || !userData) return;
+        if (!userData) return;
 
         const domain = process.env.NEXT_API_URL;
         axios
             .get(`${domain}/boss/${userData?.accountId}`)
-            .then((res)=>{
+            .then((res) => {
                 setDataItem(res.data.data);
             })
-            .catch(()=>{
+            .catch(() => {
                 console.log('Failed to fetch boss character');
             })
-
-
     }, [userData]);
 
+    // 그룹 선택 핸들러
+    const handleGroupSelect = (item: string) => {
+        setSelectedGroup(item);
+    };
+
+    // 선택된 그룹 로깅
+    useEffect(() => {
+        console.log("Selected Group: ", selectedGroup);
+    }, [selectedGroup]);
+
+    // 데이터 로깅
+    useEffect(() => {
+        console.log("Data Items: ", dataItem);
+    }, [dataItem]);
 
     return (
         <>
             <div className={"content"}>
                 <div className={"flex mb-10"}>
+                    {/* 왼쪽 섹션 */}
                     <div className={"user-box"}>
                         <div className={"bookmark"}>
                             <div>즐겨찾기</div>
-                            {/*<UserCard expeditions={expeditions}/>*/}
                         </div>
 
                         <Divider
                             sx={{
-                                my: 2,                  // 상하 간격 추가
-                                mx: 2,                  // 양쪽 간격 추가
-                                borderColor: 'grey.300' // 선 색상 설정
+                                my: 2,
+                                mx: 2,
+                                borderColor: 'grey.300'
                             }}
                         />
 
                         <div className={"user-list"}>
                             <div>친구목록</div>
-                            {dataItem.map((item, index)=>(
-                                <UserCard key={index} dataItem={item}/>
-                            ))}
+                            <Box display="flex" flexDirection="column">
+                                {dataItem.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        onClick={() => handleGroupSelect(item.mainCharacterNm)}
+                                        style={{
+                                            cursor: 'pointer',
+                                            backgroundColor: selectedGroup === item.mainCharacterNm ? '#333' : '#2B2D31',
+                                            borderRadius: '5px'
+                                        }}
+                                    >
+                                        <UserCard dataItem={item} />
+                                    </div>
+                                ))}
+                            </Box>
                         </div>
                     </div>
+
+                    {/* 오른쪽 섹션 */}
                     <div className={"sixman-box"}>
-                        <DraggableList />
+                        {selectedGroup !== null ? (
+                            <DraggableList
+                                key={selectedGroup}
+                                items={dataItem.find(item => item.mainCharacterNm === selectedGroup)?.expeditionList || { expeditionList: [] }}
+                            />
+                        ) : (
+                            <div style={{ padding: '20px', textAlign: 'center' }}>
+                                대표캐릭터를 선택하세요.
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                {/* 버튼 섹션 */}
                 <div className={"btn-area"}>
-                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined"  />
+                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined" />
                 </div>
             </div>
-
         </>
     );
 }

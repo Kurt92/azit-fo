@@ -1,32 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { Box, Paper, Typography, IconButton, Checkbox, FormControlLabel, Divider } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { IExpedition } from "@/shared/types/ExpeditionInterface";
 
-type Item = {
-    id: string;
-    content: string;
-    checks: {
-        aaa: boolean;
-        bbb: boolean;
-        ccc: boolean;
-    };
-};
+interface DraggableListProps {
+    items: IExpedition[]; // 부모로부터 전달받을 데이터
+}
 
-const initialItems: Item[] = [
-    { id: '1', content: 'Item 1', checks: { aaa: false, bbb: false, ccc: false } },
-    { id: '2', content: 'Item 2', checks: { aaa: false, bbb: false, ccc: false } },
-    { id: '3', content: 'Item 3', checks: { aaa: false, bbb: false, ccc: false } },
-];
-
-export default function DraggableList() {
+const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems }) => {
     const [items, setItems] = useState(initialItems);
 
+    // props 변경 시 업데이트
+    useEffect(() => {
+        setItems(initialItems);
+    }, [initialItems]);
+
+    // 드래그 처리
     const onDragEnd = (result: any) => {
         const { destination, source } = result;
-
         if (!destination) return;
 
         const updatedItems = Array.from(items);
@@ -36,14 +30,27 @@ export default function DraggableList() {
         setItems(updatedItems);
     };
 
-    const toggleCheckbox = (id: string, key: keyof Item['checks']) => {
+    // 체크박스 상태 변경
+    const toggleCheckbox = (expId: string, bossIndex: number) => {
         setItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === id
-                    ? { ...item, checks: { ...item.checks, [key]: !item.checks[key] } }
-                    : item
-            )
+            prevItems.map((item) => ({
+                ...item,
+                bossList: item.bossList.map((boss, index) =>
+                    index === bossIndex ? { ...boss, clearAt: !boss.clearAt } : boss
+                )
+            }))
         );
+    };
+
+    // bossNm 기준 그룹화
+    const groupBossesByNm = (bossList: any[]) => {
+        return bossList.reduce((grouped: Record<string, any[]>, boss) => {
+            if (!grouped[boss.bossNm]) {
+                grouped[boss.bossNm] = [];
+            }
+            grouped[boss.bossNm].push(boss);
+            return grouped;
+        }, {});
     };
 
     return (
@@ -55,8 +62,8 @@ export default function DraggableList() {
                         ref={provided.innerRef}
                         sx={{ width: '100%', maxWidth: '95%', margin: 'auto', mt: 5 }}
                     >
-                        {items.map((item, index) => (
-                            <Draggable key={item.id} draggableId={item.id} index={index}>
+                        {items.map((exp, index) => (
+                            <Draggable key={exp.expeditionBossId} draggableId={exp.expeditionBossId} index={index}>
                                 {(provided) => (
                                     <Box
                                         ref={provided.innerRef}
@@ -72,7 +79,7 @@ export default function DraggableList() {
                                             {...provided.dragHandleProps}
                                             sx={{
                                                 cursor: 'grab',
-                                                color: 'primary.main',
+                                                color: '#424242',
                                                 mr: 2,
                                             }}
                                         >
@@ -82,15 +89,12 @@ export default function DraggableList() {
                                         <Paper
                                             sx={{
                                                 padding: 2,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                backgroundColor: 'primary.light',
+                                                backgroundColor: '#424242',
                                                 color: 'white',
                                                 width: '100%',
                                             }}
                                         >
-                                            <Typography>{item.content}</Typography>
-
+                                            <Typography>{exp.characterNm}</Typography>
                                             <Divider
                                                 sx={{
                                                     my: 2,
@@ -99,38 +103,30 @@ export default function DraggableList() {
                                                 }}
                                             />
 
-                                            <Box sx={{display: 'flex', flexDirection: 'column',}}>
-                                                <FormControlLabel
-                                                    control={
-                                                        <Checkbox
-                                                            checked={item.checks.aaa}
-                                                            onChange={() => toggleCheckbox(item.id, 'aaa')}
-                                                            color="default"
-                                                        />
-                                                    }
-                                                    label="AAA"
-                                                />
-                                                <FormControlLabel
-                                                    control={
-                                                        <Checkbox
-                                                            checked={item.checks.bbb}
-                                                            onChange={() => toggleCheckbox(item.id, 'bbb')}
-                                                            color="default"
-                                                        />
-                                                    }
-                                                    label="BBB"
-                                                />
-                                                <FormControlLabel
-                                                    control={
-                                                        <Checkbox
-                                                            checked={item.checks.ccc}
-                                                            onChange={() => toggleCheckbox(item.id, 'ccc')}
-                                                            color="default"
-                                                        />
-                                                    }
-                                                    label="CCC"
-                                                />
-                                            </Box>
+                                            {/* 그룹화하여 줄바꿈 처리 */}
+                                            {Object.entries(groupBossesByNm(exp.bossList)).map(([bossNm, bosses], idx) => (
+                                                <Box key={idx} sx={{ mb: 1 }}>
+                                                    <Typography sx={{ fontWeight: 'bold' }}>{bossNm}</Typography>
+                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                        {bosses.map((boss, bossIndex) => (
+                                                            <FormControlLabel
+                                                                key={boss.expeditionBossId}
+                                                                control={
+                                                                    <Checkbox
+                                                                        id={boss.expeditionId}
+                                                                        checked={boss.clearAt}
+                                                                        onChange={() =>
+                                                                            toggleCheckbox(exp.expeditionBossId, bossIndex)
+                                                                        }
+                                                                        color="default"
+                                                                    />
+                                                                }
+                                                                label={boss.gate}
+                                                            />
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            ))}
                                         </Paper>
                                     </Box>
                                 )}
@@ -142,4 +138,6 @@ export default function DraggableList() {
             </Droppable>
         </DragDropContext>
     );
-}
+};
+
+export default DraggableList;

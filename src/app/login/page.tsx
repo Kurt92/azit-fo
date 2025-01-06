@@ -57,32 +57,35 @@ export default function Page() {
         // e.preventDefault();
         console.log("Submitted Data:", { id, password });
     };
+    const checkRefToken = async() => {
+        try {
+            const res = await axios.get(
+                "/api/auth/token",
+                {withCredentials: true,}
+            );
 
+            if(res.status === 200) {
+                // router.push("/main")
+                console.log(res);
+            } else console.log("Token nsot found.");
+        } catch (err) {console.error("ref token find err", err);}
+    }
 
     useEffect(() => {
 
         // 직접 auth 서버 호출하는 방식에서 리엑트쿼리로 변경
-        // const checkRefToken = async() => {
-        //     try {
-        //         const res = await axios.get(
-        //             "/api/auth/token",
-        //             {withCredentials: true,}
-        //         );
-        //
-        //         if(res.status === 200) {
-        //             // router.push("/main")
-        //             console.log(res);
-        //         } else console.log("Token nsot found.");
-        //     } catch (err) {console.error("ref token find err", err);}
-        // }
-        //
-        // checkRefToken();
+
 
         if (isUserLoading) console.log("Loading...");
-        if (isUserError) console.log("Error fetching token!");
+        if (isUserError) {
+            console.log("Error fetching token!");
+            checkRefToken();
+
+
+        }
         if (userData) {
             console.log("Account ID:", userData);
-            router.push("/main")
+            router.back();
         }
 
 

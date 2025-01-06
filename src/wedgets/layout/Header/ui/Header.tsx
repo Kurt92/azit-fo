@@ -4,8 +4,12 @@ import Link from "next/link";
 import {Avatar} from "@mui/material";
 import CustomBtn from "@/shared/components/Button/CustomBtn";
 import { useRouter } from "next/navigation";
+import {UserData} from "@/shared/util/ReactQuery/UserData";
+import {user} from "@/shared/util/ApiReq/user/req";
 
 export const Header = () => {
+
+    const { data: userData, isLoading: isUserLoading, isError: isUserError } = UserData(["userData"], user);
 
     const router = useRouter();
 
@@ -26,8 +30,13 @@ export const Header = () => {
                     </ul>
                 </nav>
                     <div className={"avatar-area"}>
-                        <CustomBtn label="로그인" onClick={login} color="primary" variant="outlined"/>
-                        {/*<Avatar>H</Avatar>*/}
+                        {isUserLoading ? ( // 로딩 중에는 빈 Avatar 표시
+                            <></>
+                        ) : userData ? (
+                            <Avatar/>
+                        ) : (
+                            <CustomBtn label="로그인" onClick={login} color="primary" variant="outlined" />
+                        )}
                     </div>
             </header>
         </>

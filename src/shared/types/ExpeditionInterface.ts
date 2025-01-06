@@ -1,6 +1,6 @@
 // ExpeditionInterface.ts
-export interface Expedition {
-    accountId: string;
+export interface IExpedition {
+    expeditionBossId: string;
     mainCharacterNm: string;
     characterNm: string;
     characterClassName: string;
@@ -8,11 +8,19 @@ export interface Expedition {
     characterLevel: string;
     serverNm: string;
     sixmanAt: string | null;
+    bossList:IBoss[];
 }
 
-export interface DataItem {
+export interface IDataItem {
     mainCharacterNm: string;
     // characterClassName: string;
     // itemLevel: string;
-    expeditionList: Expedition[];
+    expeditionList: IExpedition[];
+}
+
+export interface IBoss {
+    bossNm: string;
+    gate: string;
+    clearAt: boolean;
+    clearGold: number;
 }
