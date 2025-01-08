@@ -86,7 +86,7 @@ export default function Boss() {
                                             borderRadius: '5px'
                                         }}
                                     >
-                                        <UserCard dataItem={item} />
+                                        <UserCard dataItem={item}/>
                                     </div>
                                 ))}
                             </Box>
@@ -98,10 +98,11 @@ export default function Boss() {
                         {selectedGroup !== null ? (
                             <DraggableList
                                 key={selectedGroup}
-                                items={dataItem.find(item => item.mainCharacterNm === selectedGroup)?.expeditionList || { expeditionList: [] }}
+                                items={dataItem.find(item => item.mainCharacterNm === selectedGroup)?.expeditionList || {expeditionList: []}}
+                                userData={userData}
                             />
                         ) : (
-                            <div style={{ padding: '20px', textAlign: 'center' }}>
+                            <div style={{padding: '20px', textAlign: 'center'}}>
                                 대표캐릭터를 선택하세요.
                             </div>
                         )}
@@ -110,7 +111,7 @@ export default function Boss() {
 
                 {/* 버튼 섹션 */}
                 <div className={"btn-area"}>
-                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined" />
+                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined"/>
                 </div>
             </div>
         </>
