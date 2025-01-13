@@ -1,0 +1,26 @@
+.star {
+    width: 7%;
+    margin-left: 5px;
+}
+.card-content {
+    width: 93%;
+}
+
+.main-and-class{
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.nm-and-lv {
+    display: flex;
+    justify-content: space-between;
+}
+
+.nm {
+    width: 73%;
+}
+
+.lv {
+
+}

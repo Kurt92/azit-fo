@@ -5,9 +5,7 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { Box, Paper, Typography, IconButton, Checkbox, FormControlLabel, Divider } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { IExpedition } from "@/shared/types/ExpeditionInterface";
-import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {IUser} from "@/shared/types/UserInterface";
-import {user} from "@/shared/util/ApiReq/user/req";
 import CustomBtn from "@/shared/components/Button/CustomBtn";
 
 interface DraggableListProps {
@@ -108,11 +106,9 @@ const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems , use
                                                     width: '100%',
                                                 }}
                                             >
-                                                <Box className="flex justify-between">
+                                                <Box className="character-nm-area">
                                                     <Box>{exp.characterNm}</Box>
-                                                    <div className={"btn-area"}>
-                                                        <CustomBtn label="보스변경" color="primary" variant="outlined"/>
-                                                    </div>
+                                                    <CustomBtn label="보스변경" color="primary" variant="outlined"/>
                                                 </Box>
 
                                                 {/*<Box display="flex" justifyContent="space-between" alignItems="center" width="100%">*/}
@@ -130,8 +126,8 @@ const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems , use
 
                                                 {/* 그룹화하여 줄바꿈 처리 */}
                                                 {Object.entries(groupBossesByNm(exp.bossList)).map(([bossNm, bosses], idx) => (
-                                                    <Box key={idx} sx={{mb: 1}}>
-                                                        <Typography sx={{fontWeight: 'bold'}}>{bossNm}</Typography>
+                                                    <Box key={idx} sx={{mb: 1}} className="boss-list-area">
+                                                        <Typography className={"boss-nm"}>{bossNm}</Typography>
                                                         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
                                                             {bosses.map((boss, bossIndex) => (
                                                                 <FormControlLabel

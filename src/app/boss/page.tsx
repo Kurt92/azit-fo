@@ -11,6 +11,7 @@ import {user} from "@/shared/util/ApiReq/user/req";
 import {IDataItem} from "@/shared/types/ExpeditionInterface";
 import UserCard from "@/shared/components/Card/UserCard";
 import {IUser} from "@/shared/types/UserInterface";
+import SixmanDialog from "@/wedgets/dialog/sixman/ui/SixmanDialog";
 
 export default function Boss() {
     // React Query로 사용자 데이터 로드
@@ -20,9 +21,18 @@ export default function Boss() {
     const [dataItem, setDataItem] = useState<IDataItem[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-    // 버튼 클릭 핸들러
-    const handleClick = () => {
-        alert('Button clicked!');
+    // 다이얼로그 상태
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    // 다이얼로그 열기
+    const handleOpenDialog = () => {
+        setDialogOpen(true);
+        console.log("open");
+    };
+
+    // 다이얼로그 닫기
+    const handleCloseDialog = () => {
+        setDialogOpen(false);
     };
 
     // 데이터 로드
@@ -111,9 +121,14 @@ export default function Boss() {
 
                 {/* 버튼 섹션 */}
                 <div className={"btn-area"}>
-                    <CustomBtn label="내 식스맨 변경" onClick={handleClick} color="primary" variant="outlined"/>
+                    <CustomBtn label="내 식스맨 변경" onClick={handleOpenDialog} color="primary" variant="outlined" />
                 </div>
             </div>
+            <SixmanDialog
+                userData={userData}
+                open={dialogOpen} // 다이얼로그 열림 여부 상태 전달
+                onClose={() => setDialogOpen(false)} // 다이얼로그 닫기 함수
+            />
         </>
     );
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react';
+import "./UserCard.css"
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -54,11 +55,11 @@ export default function UserCard({ dataItem }: UserCardProps) {
                 {/*    image="/static/images/cards/contemplative-reptile.jpg"*/}
                 {/*    alt="green iguana"*/}
                 {/*/>*/}
-                <IconButton component={"div"} onClick={toggleFavorite} sx={{ color: '#ffc107' }}>
+                <IconButton className={"star"} component={"div"} onClick={toggleFavorite} sx={{ color: '#ffc107' }}>
                     {isFavorite ? <StarIcon /> : <StarBorderIcon />}
                 </IconButton>
-                <CardContent className={"flex-col "}>
-                    <div className={"flex "}>
+                <CardContent className={"flex-col card-content"}>
+                    <div className={"main-and-class"}>
                         <Typography gutterBottom variant="body2" component="div"
                                     sx={{color: '#ffffff', fontSize: '11px'}}>
                             대표캐릭터
@@ -68,11 +69,11 @@ export default function UserCard({ dataItem }: UserCardProps) {
                             {matchedClassNm}
                         </Typography>
                     </div>
-                    <div className={"flex "}>
-                        <Typography sx={{color: '#ffffff', fontSize: '16px'}}>
+                    <div className={"nm-and-lv "}>
+                        <Typography className={"nm"} sx={{color: '#ffffff', fontSize: '15px'}}>
                             {dataItem.mainCharacterNm}
                         </Typography>
-                        <Typography sx={{color: '#ffffff', marginLeft: '1rem', fontSize: '12px'}}>
+                        <Typography className={"lv"} sx={{color: '#ffffff', fontSize: '12px'}}>
                             {matchedItemLevel} Lv
                         </Typography>
                     </div>
