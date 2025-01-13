@@ -5,7 +5,10 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/shared/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/wedgets/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  important: true, // 모든 Tailwind 클래스에 !important 추가
   theme: {
     extend: {
       colors: {
