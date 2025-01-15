@@ -21,18 +21,24 @@ export default function Boss() {
     const [dataItem, setDataItem] = useState<IDataItem[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-    // 다이얼로그 상태
-    const [dialogOpen, setDialogOpen] = useState(false);
+    // 식스맨 다이얼로그 상태
+    const [sixmanDialogOpen, setSixmanDialogOpen] = useState(false);
+
+
+    const saveBossAt = () => {
+
+    }
+
 
     // 다이얼로그 열기
     const handleOpenDialog = () => {
-        setDialogOpen(true);
+        setSixmanDialogOpen(true);
         console.log("open");
     };
 
     // 다이얼로그 닫기
     const handleCloseDialog = () => {
-        setDialogOpen(false);
+        setSixmanDialogOpen(false);
     };
 
     // 데이터 로드
@@ -120,15 +126,17 @@ export default function Boss() {
                 </div>
 
                 {/* 버튼 섹션 */}
-                <div className={"btn-area"}>
+                <div className={"flex justify-between w-2/3"}>
                     <CustomBtn label="내 식스맨 변경" onClick={handleOpenDialog} color="primary" variant="outlined" />
+                    <CustomBtn label="저장" onClick={saveBossAt} color="primary" variant="outlined" />
                 </div>
             </div>
             <SixmanDialog
                 userData={userData}
-                open={dialogOpen} // 다이얼로그 열림 여부 상태 전달
-                onClose={() => setDialogOpen(false)} // 다이얼로그 닫기 함수
+                open={sixmanDialogOpen} // 다이얼로그 열림 여부 상태 전달
+                onClose={() => setSixmanDialogOpen(false)} // 다이얼로그 닫기 함수
             />
+
         </>
     );
 }

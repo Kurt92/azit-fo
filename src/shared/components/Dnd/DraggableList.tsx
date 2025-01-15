@@ -7,6 +7,8 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { IExpedition } from "@/shared/types/ExpeditionInterface";
 import {IUser} from "@/shared/types/UserInterface";
 import CustomBtn from "@/shared/components/Button/CustomBtn";
+import SixmanDialog from "@/wedgets/dialog/sixman/ui/SixmanDialog";
+import BossListDialog from "@/wedgets/dialog/bossList/ui/BossListDialog";
 
 interface DraggableListProps {
     items: IExpedition[]; // 부모로부터 전달받을 데이터
@@ -15,6 +17,20 @@ interface DraggableListProps {
 
 const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems , userData }) => {
     const [items, setItems] = useState(initialItems);
+    // 보스리스트 다이얼로그 상태
+    const [bossListDialog, setBossListDialog] = useState(false);
+
+
+    // 다이얼로그 열기
+    const handleOpenDialog = () => {
+        setBossListDialog(true);
+        console.log("open");
+    };
+
+    // 다이얼로그 닫기
+    const handleCloseDialog = () => {
+        setBossListDialog(false);
+    };
 
     // props 변경 시 업데이트
     useEffect(() => {
@@ -108,7 +124,7 @@ const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems , use
                                             >
                                                 <Box className="character-nm-area">
                                                     <Box>{exp.characterNm}</Box>
-                                                    <CustomBtn label="보스변경" color="primary" variant="outlined"/>
+                                                    <CustomBtn label="보스변경" color="primary" variant="outlined" onClick={handleOpenDialog}/>
                                                 </Box>
 
                                                 {/*<Box display="flex" justifyContent="space-between" alignItems="center" width="100%">*/}
@@ -158,8 +174,15 @@ const DraggableList: React.FC<DraggableListProps> = ({ items: initialItems , use
                     )}
                 </Droppable>
             </DragDropContext>
+
+            <BossListDialog
+                userData={userData}
+                open={bossListDialog} // 다이얼로그 열림 여부 상태 전달
+                onClose={() => setBossListDialog(false)} // 다이얼로그 닫기 함수
+            />
         </>
-    );
+
+    )
 };
 
 export default DraggableList;

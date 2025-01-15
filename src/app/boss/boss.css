@@ -41,3 +41,8 @@
 .boss-nm {
     width: 100px;
 }
+
+.btn-area {
+    display: flex;
+    justify-content: space-between;
+}
