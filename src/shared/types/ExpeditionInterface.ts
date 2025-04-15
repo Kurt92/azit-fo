@@ -7,8 +7,9 @@ export interface IExpedition {
     itemLevel: string;
     characterLevel: string;
     serverNm: string;
-    sixmanAt: Boolean | null;
+    sixmanAt: boolean | undefined;
     bossList:IBoss[];
+    expeditionId:string;
 }
 
 export interface IDataItem {

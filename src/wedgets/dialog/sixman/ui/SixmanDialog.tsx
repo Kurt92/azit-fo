@@ -88,15 +88,15 @@ const SixmanDialog: React.FC<SixmanDialogProps> = ({ userData, open, onClose }) 
                         <div className={"dialog-row"} key={item.expeditionId}>
                             <Checkbox
                                 id={item.expeditionId}
-                                checked={item.sixmanAt}
+                                checked={item.sixmanAt ?? false}
                                 onClick={() => {
-                                    if (item.characterNm === expedition[0].mainCharacterNm){
+                                    if (item.characterNm === expedition[0].mainCharacterNm) {
                                         alert("대표캐릭터는 식스맨에 반드시 포함되어야 합니다.");
                                         return;
                                     }
                                     toggleCheckbox(item.expeditionId);
                                 }}
-                                aria-disabled={()=> item.characterNm === expedition[0].mainCharacterNm}
+                                aria-disabled={item.characterNm === expedition[0].mainCharacterNm}
                                 color="default"
                             />
                             <div className={"mr-2.5 w-1/6 "}>{item.serverNm}</div>

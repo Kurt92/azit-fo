@@ -33,8 +33,7 @@ function BannerSlider() {
         axios.get("/api/back/event", {withCredentials: true,})
             .then((res)=>{
                 // console.log(res.data.data.events);
-                setEvents(res.data.data.events);
-            })
+                            })
             .catch()
     }, []);
 
