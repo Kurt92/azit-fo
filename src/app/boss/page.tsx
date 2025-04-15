@@ -114,7 +114,7 @@ export default function Boss() {
                         {selectedGroup !== null ? (
                             <DraggableList
                                 key={selectedGroup}
-                                items={dataItem.find(item => item.mainCharacterNm === selectedGroup)?.expeditionList || {expeditionList: []}}
+                                items={dataItem.find(item => item.mainCharacterNm === selectedGroup)?.expeditionList || []}
                                 userData={userData}
                             />
                         ) : (
