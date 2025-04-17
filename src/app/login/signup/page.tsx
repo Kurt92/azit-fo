@@ -1,7 +1,7 @@
 "use client";
 
 import "./signup.css";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Box, TextField, Button, Typography, Container } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
@@ -36,6 +36,12 @@ export default function SignupPage(): JSX.Element {
     const [isValidEmail, setIsIdValEmail] = useState<boolean | null>(null);
     const router = useRouter();
 
+    const [authCodeSent, setAuthCodeSent] = useState<boolean>(false);
+    const [authCode, setAuthCode] = useState<string>("");
+    const [inputCode, setInputCode] = useState<string>("");
+    const [timer, setTimer] = useState<number>(180); // 3분 = 180초
+
+    //회원가입 요청
     const handleSignup = (): void => {
 
         if (isIdValid) {
@@ -89,10 +95,65 @@ export default function SignupPage(): JSX.Element {
             });
     };
 
+    // 이메일 인증 요청
+    const handleEmailVerification = () => {
+        if (!validateEmail(email)) {
+            alert("이메일 형식을 확인해주세요.");
+            return;
+        }
+
+        const domain = process.env.NEXT_API_URL;
+        axios
+            .post(`${domain}/send-verification-code`, {
+                email
+            })
+            .then(() => {
+                alert("인증 메일이 전송되었습니다.");
+                setAuthCodeSent(true);
+                setTimer(180); // 3분
+            })
+            .catch((err) => {
+                console.error("이메일 인증 요청 실패", err);
+                alert("이메일 인증 요청에 실패했습니다.");
+            });
+    };
+
+    // 인증번호 검증 요청
+    const handleVerifyCode = () => {
+        const domain = process.env.NEXT_API_URL;
+        axios
+            .post(`${domain}/verify-code`, {
+                email,
+                code: inputCode,
+            })
+            .then((res) => {
+                if (res.data.success) {
+                    alert("이메일 인증이 완료되었습니다.");
+                    setIsIdValEmail(true);
+                } else {
+                    alert("인증번호가 틀렸거나 만료되었습니다.");
+                }
+            })
+            .catch((err) => {
+                console.error("인증번호 검증 실패", err);
+                alert("인증번호 확인 중 오류가 발생했습니다.");
+            });
+    };
+
     const validateEmail = (email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // 간단한 이메일 검증 정규식
         return emailRegex.test(email);
     };
+
+    // 타이머 로직
+    useEffect(() => {
+        if (authCodeSent && timer > 0) {
+            const interval = setInterval(() => {
+                setTimer((prev) => prev - 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [authCodeSent, timer]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -180,20 +241,55 @@ export default function SignupPage(): JSX.Element {
                                 borderRadius: "4px",
                             }}
                         />
-                        <TextField
-                            label="이메일"
-                            variant="filled"
-                            value={email}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                setEmail(e.target.value);
-                            }}
-                            error={isValidEmail === false} // 에러 상태 표시
-                            fullWidth
-                            sx={{
-                                backgroundColor: "background.default",
-                                borderRadius: "4px",
-                            }}
-                        />
+                        <Box sx={{ display: "flex", gap: "1rem"}}>
+                            <TextField
+                                label="이메일"
+                                variant="filled"
+                                value={email}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    setEmail(e.target.value);
+                                }}
+                                error={isValidEmail === false}
+                                fullWidth
+                                sx={{
+                                    backgroundColor: "background.default",
+                                    borderRadius: "4px",
+                                }}
+                            />
+
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={authCodeSent ? handleVerifyCode : handleEmailVerification}
+                                sx={{
+                                    flexShrink: 0,
+                                    fontWeight: "bold",
+                                    padding: "0.5rem 1rem",
+                                    whiteSpace: "nowrap",
+                                }}
+                            >
+                                {authCodeSent ? "확인" : "인증 요청"}
+                            </Button>
+                        </Box>
+
+                        {authCodeSent && !isValidEmail && (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: "1rem", mt: 1 }}>
+                                <TextField
+                                    label="인증번호"
+                                    variant="filled"
+                                    value={inputCode}
+                                    onChange={(e) => setInputCode(e.target.value)}
+                                    fullWidth
+                                    sx={{
+                                        backgroundColor: "background.default",
+                                        borderRadius: "4px",
+                                    }}
+                                />
+                                <Typography sx={{ whiteSpace: "nowrap" }}>
+                                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
+                                </Typography>
+                            </Box>
+                        )}
                         <Button
                             type="button"
                             variant="contained"
