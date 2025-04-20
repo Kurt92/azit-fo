@@ -59,8 +59,9 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
+        const domain = process.env.NEXT_AUTH_URL;
         axios
-            .post("http://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/signup", { accountId, password })
+            .post(`${domain}/signup`, { accountId, password })
             .then((res) => {
                 console.log("Signup successful:", res);
                 alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
@@ -78,15 +79,16 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
+        const domain = process.env.NEXT_AUTH_URL;
         axios
-            .get(`http://ec2-54-180-247-143.ap-northeast-2.compute.amazonaws.com:8011/duplicate-check`, { params: { accountId: accountId } })
+            .get(`${domain}/duplicate-check`, { params: { accountId: accountId } })
             .then((res) => {
                 if (res.data) {
                     alert("이미 사용 중인 아이디입니다.");
-                    setIsIdValid(true);
+                    setIsIdValid(false);
                 } else {
                     alert("사용 가능한 아이디입니다.");
-                    setIsIdValid(false);
+                    setIsIdValid(true);
                 }
             })
             .catch((err) => {
@@ -96,16 +98,18 @@ export default function SignupPage(): JSX.Element {
     };
 
     // 이메일 인증 요청
-    const handleEmailVerification = () => {
+    const handleEmailVerifyCodeSend = () => {
         if (!validateEmail(email)) {
             alert("이메일 형식을 확인해주세요.");
             return;
         }
 
-        const domain = process.env.NEXT_API_URL;
+        const domain = process.env.NEXT_AUTH_URL;
         axios
-            .post(`${domain}/send-verification-code`, {
-                email
+            .get(`${domain}/email-verify-code-send`, {
+                params: {
+                    email: email
+                }
             })
             .then(() => {
                 alert("인증 메일이 전송되었습니다.");
@@ -119,24 +123,22 @@ export default function SignupPage(): JSX.Element {
     };
 
     // 인증번호 검증 요청
-    const handleVerifyCode = () => {
-        const domain = process.env.NEXT_API_URL;
+    const verifyEmailCode = () => {
+        const domain = process.env.NEXT_AUTH_URL;
         axios
-            .post(`${domain}/verify-code`, {
-                email,
-                code: inputCode,
+            .get(`${domain}/email-verify-code-check`, {
+                params: {
+                    email: email,
+                    code: inputCode
+                }
             })
             .then((res) => {
-                if (res.data.success) {
-                    alert("이메일 인증이 완료되었습니다.");
-                    setIsIdValEmail(true);
-                } else {
-                    alert("인증번호가 틀렸거나 만료되었습니다.");
-                }
+                alert("이메일 인증이 완료되었습니다.");
+                setIsIdValEmail(true);
             })
             .catch((err) => {
                 console.error("인증번호 검증 실패", err);
-                alert("인증번호 확인 중 오류가 발생했습니다.");
+                alert("인증번호가 틀렸거나 만료되었습니다.");
             });
     };
 
@@ -152,8 +154,12 @@ export default function SignupPage(): JSX.Element {
                 setTimer((prev) => prev - 1);
             }, 1000);
             return () => clearInterval(interval);
+        } else if (authCodeSent && timer === 0) {
+            setAuthCodeSent(false); // 타이머 끝났을 때 버튼 초기화
+            alert("인증 시간이 만료되었습니다. 다시 요청해주세요.");
         }
     }, [authCodeSent, timer]);
+
 
     return (
         <ThemeProvider theme={theme}>
@@ -188,7 +194,7 @@ export default function SignupPage(): JSX.Element {
                                 label="아이디"
                                 variant="filled"
                                 value={accountId}
-                                error={isIdValid === true}
+                                error={isIdValid === false}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     setAccountId(e.target.value);
                                     setIsIdValid(null); // 아이디 변경 시 중복 체크 상태 초기화
@@ -197,6 +203,9 @@ export default function SignupPage(): JSX.Element {
                                 sx={{
                                     backgroundColor: "background.default",
                                     borderRadius: "4px",
+                                    "& .MuiFilledInput-root": {
+                                        border: isIdValid ? "2px solid green" : undefined,
+                                    },
                                 }}
                             />
                             <Button
@@ -246,21 +255,23 @@ export default function SignupPage(): JSX.Element {
                                 label="이메일"
                                 variant="filled"
                                 value={email}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    setEmail(e.target.value);
-                                }}
+                                onChange={(e) => setEmail(e.target.value)}
                                 error={isValidEmail === false}
                                 fullWidth
                                 sx={{
                                     backgroundColor: "background.default",
                                     borderRadius: "4px",
+                                    "& .MuiFilledInput-root": {
+                                        border: isValidEmail ? "2px solid green" : undefined,
+                                    },
                                 }}
                             />
+
 
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={authCodeSent ? handleVerifyCode : handleEmailVerification}
+                                onClick={handleEmailVerifyCodeSend}
                                 sx={{
                                     flexShrink: 0,
                                     fontWeight: "bold",
@@ -268,7 +279,7 @@ export default function SignupPage(): JSX.Element {
                                     whiteSpace: "nowrap",
                                 }}
                             >
-                                {authCodeSent ? "확인" : "인증 요청"}
+                                {authCodeSent && !isValidEmail ? `${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, "0")}` : "인증 요청"}
                             </Button>
                         </Box>
 
@@ -285,9 +296,19 @@ export default function SignupPage(): JSX.Element {
                                         borderRadius: "4px",
                                     }}
                                 />
-                                <Typography sx={{ whiteSpace: "nowrap" }}>
-                                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, "0")}
-                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={verifyEmailCode}
+                                    sx={{
+                                        flexShrink: 0,
+                                        fontWeight: "bold",
+                                        padding: "0.5rem 1rem",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    인증번호 확인
+                                </Button>
                             </Box>
                         )}
                         <Button

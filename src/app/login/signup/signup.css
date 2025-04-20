@@ -5,3 +5,17 @@
     min-height: 100%; /* 화면 전체 높이 */
     background-color: #333; /* 선택적으로 배경 색상 추가 */
 }
+
+.signup-container input:-webkit-autofill,
+.signup-container input:-webkit-autofill:hover,
+.signup-container input:-webkit-autofill:focus {
+    /* 파란색 하이라이트를 어두운 배경색으로 덮기 */
+    -webkit-box-shadow: 0 0 0px 1000px #444 inset !important;
+    /* 텍스트 색상 다시 지정 */
+    -webkit-text-fill-color: #fff !important;
+}
+
+/* 선택 영역(::selection) 배경도 투명으로 */
+.signup-container input::selection {
+    background: transparent;
+}
