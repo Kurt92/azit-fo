@@ -1,0 +1,19 @@
+/* BannerSlider.css 수정 */
+
+.slider-container {
+    width: 800px;
+    height: 300px;
+    margin: 0 auto;
+    position: relative;
+    overflow: visible;   /* ← 화살표가 보이도록 visible */
+}
+
+/* 실제 슬라이드만 클리핑 */
+.slider-container .slick-list {
+    overflow: hidden;    /* 슬라이드 영역만 가리고 */
+}
+
+/* arrow가 컨테이너 바깥에 걸쳐 있어도 보이도록 z-index 살짝 올려두기 */
+.slider-container .slick-prev, .slider-container .slick-next {
+    z-index: 2;
+}

@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React, { useState } from "react";
 import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {user} from "@/shared/util/ApiReq/user/req";
+import ChatWidget from "@/wedgets/Chat/ui/ChatWidget";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -27,11 +28,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ) : (
                 <>
                     <Header />
-                    <main>{children}</main>
+                    <main>
+                        {children}
+                        <ChatWidget/>
+                    </main>
+
                 </>
             )}
             {/* React Query Devtools는 모든 페이지에서 유지 */}
-            <ReactQueryDevtools initialIsOpen={false} position="bottom" />
+            <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" position="left" />
         </QueryClientProvider>
         </body>
         </html>
