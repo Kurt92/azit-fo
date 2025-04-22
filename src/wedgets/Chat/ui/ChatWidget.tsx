@@ -1,25 +1,11 @@
 // components/ChatWidget.tsx
 'use client';
 
-import React, { useState } from 'react';
-import {
-    Box,
-    Fab,
-    Paper,
-    IconButton,
-    TextField,
-    Button,
-    Typography,
-    Grow,
-    List,
-    ListItem,
-    ListItemText,
-    Tabs,
-    Tab,
-    useTheme,
-} from '@mui/material';
+import React, {useEffect, useRef, useState} from 'react';
+import {Box, Fab, Paper, IconButton, TextField, Button, Typography, Grow, List, ListItem, ListItemText, Tabs, Tab, useTheme} from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
+import axios from "axios";
 
 interface ChatRoom {
     id: string;
@@ -32,7 +18,8 @@ interface Friend {
 }
 
 export default function ChatWidget() {
-    const theme = useTheme();
+
+    /* 샘플 하드코딩 */
     const [rooms] = useState<ChatRoom[]>([
         { id: '1', name: '성태', lastMessage: '몬헌함??' },
         { id: '2', name: '정민', lastMessage: '와 이게 되네?' },
@@ -44,6 +31,11 @@ export default function ChatWidget() {
         { id: '2', name: '정민' },
     ]);
 
+
+    const theme = useTheme();
+
+    const socketRef = useRef<WebSocket | null>(null);
+
     const [listOpen, setListOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
@@ -52,15 +44,18 @@ export default function ChatWidget() {
     const [tabIndex, setTabIndex] = useState(0);
 
     const toggleList = () => setListOpen(o => !o);
+
     const openChat = (room: ChatRoom) => {
         setSelectedRoom(room);
         setListOpen(false);
         setChatOpen(true);
     };
+
     const closeChat = () => setChatOpen(false);
+
     const sendMessage = () => {
         if (!input.trim()) return;
-        setMessages(msgs => [...msgs, input.trim()]);
+        socketRef.current?.send(input.trim());
         setInput('');
     };
     const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
@@ -69,6 +64,58 @@ export default function ChatWidget() {
     const panelBg = '#2e2e2e';
     const inputBg = '#3a3a3a';
     const white = '#ffffff';
+
+
+    useEffect(() => {
+
+        // 채팅방 조회
+        axios
+            .get("/api/back/event", { withCredentials: true })
+            .then((res) => {
+
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+        // 친구목록 조회
+        const domain = process.env.NEXT_AUTH_URL;
+        axios
+            .get(`${domain}/friend/list`, { withCredentials: true })
+            .then((res) => {
+
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+
+    }, []);
+
+
+
+    // 채팅 소캣 연결
+    useEffect(() => {
+
+
+        if (!chatOpen) return;
+        console.log("소켓 연결 시도");
+
+        socketRef.current = new WebSocket("ws://localhost:8077/chat");
+
+        socketRef.current.onopen = () => {
+            console.log("✅ 연결됨");
+        };
+
+        socketRef.current.onmessage = (event) => {
+            console.log("📩 수신 메시지", event.data);
+            setMessages(prev => [...prev, event.data]);
+        };
+
+        return () => {
+            socketRef.current?.close();
+        };
+    }, [chatOpen]);
 
     return (
         <>

@@ -22,9 +22,10 @@ const defaultSlide: Event = {
 export default function BannerSlider() {
     const [events, setEvents] = useState<Event[]>([]);
 
+    const domain = process.env.NEXT_API_URL;
     useEffect(() => {
         axios
-            .get("/api/back/event", { withCredentials: true })
+            .get(`${domain}/api/back/event`, { withCredentials: true })
             .then((res) => {
                 setEvents(res.data.data.events || []);
             })
