@@ -33,15 +33,15 @@ export const Header: React.FC = () => {
 
     return (
         <header className="header-container">
-            <Link className="logo-area" href={"/main"}>
+            <Link className="logo-area" href={"/"}>
                 <div className="logo"></div>
             </Link>
             <nav>
                 <ul className="header-nav">
                     {/*<li><a href="/boss">보스고?</a></li>*/}
                     {/*<li><a href="/contact">제작 계산기</a></li>*/}
-                    <li><a href="/main">tts</a></li>
-                    <li><a href="/main">커뮤</a></li>
+                    <li><a href="/">tts</a></li>
+                    <li><a href="/board">커뮤</a></li>
                 </ul>
             </nav>
 

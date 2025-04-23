@@ -1,19 +1,60 @@
 /* BannerSlider.css 수정 */
 
 .slider-container {
-    width: 800px;
-    height: 300px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.slider-item {
     position: relative;
-    overflow: visible;   /* ← 화살표가 보이도록 visible */
+    width: 100%;
+    aspect-ratio: 48/9;
 }
 
-/* 실제 슬라이드만 클리핑 */
-.slider-container .slick-list {
-    overflow: hidden;    /* 슬라이드 영역만 가리고 */
+.slider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-/* arrow가 컨테이너 바깥에 걸쳐 있어도 보이도록 z-index 살짝 올려두기 */
-.slider-container .slick-prev, .slider-container .slick-next {
-    z-index: 2;
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .slider-container {
+        padding: 0 0.5rem;
+    }
+
+    .slider-item {
+        aspect-ratio: 12/3;
+    }
+}
+
+/* 슬라이더 네비게이션 스타일 개선 */
+.slick-prev,
+.slick-next {
+    z-index: 1;
+}
+
+.slick-prev {
+    left: 10px;
+}
+
+.slick-next {
+    right: 10px;
+}
+
+.slick-dots {
+    bottom: 10px;
+}
+
+.slick-dots li button:before {
+    color: white;
+    opacity: 0.8;
+}
+
+.slick-dots li.slick-active button:before {
+    color: white;
+    opacity: 1;
 }

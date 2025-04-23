@@ -30,7 +30,7 @@ export default function BannerSlider() {
                 setEvents(res.data.data.events || []);
             })
             .catch((err) => {
-                console.error("슬리이더 조회 실패:", err);
+                console.error("슬라이더 조회 실패:", err);
             });
     }, []);
 
@@ -45,18 +45,37 @@ export default function BannerSlider() {
         slidesToScroll: 1,
         autoplay: true,
         autoplaySpeed: 4000,
+        responsive: [
+            {
+                breakpoint: 768,
+                settings: {
+                    arrows: false,
+                }
+            }
+        ],
+        lazyLoad: "ondemand" as const,
+        accessibility: true,
     };
 
     return (
-        <div className="slider-container">
+        <div className="slider-container" role="region" aria-label="이벤트 배너 슬라이더">
             <Slider {...settings}>
                 {slides.map((item, idx) => (
-                    <a href={item.Link} key={idx}>
-                        <img
-                            src={item.Thumbnail}
-                            alt={item.Title}
-                        />
-                    </a>
+                    <div key={idx} className="slider-item">
+                        <a 
+                            href={item.Link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            aria-label={`${item.Title} 이벤트로 이동`}
+                        >
+                            <img
+                                src={item.Thumbnail}
+                                alt={item.Title}
+                                loading="lazy"
+                                className="slider-image"
+                            />
+                        </a>
+                    </div>
                 ))}
             </Slider>
         </div>

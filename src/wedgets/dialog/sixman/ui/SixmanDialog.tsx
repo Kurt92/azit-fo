@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Dialog, DialogTitle, DialogContent, Box, Checkbox} from "@mui/material";
+import {Dialog, DialogTitle, DialogContent, Box, Checkbox, Typography} from "@mui/material";
 import { IUser } from "@/shared/types/UserInterface";
 import "./SixmanDialog.css"
 import axios from "axios";
@@ -107,7 +107,7 @@ const SixmanDialog: React.FC<SixmanDialogProps> = ({ userData, open, onClose }) 
 
                     ))
                 ) : (
-                    <p>데이터가 없습니다.</p>
+                    <Typography>데이터가 없습니다.</Typography>
                 )}
 
                 
