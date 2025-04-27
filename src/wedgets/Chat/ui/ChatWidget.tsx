@@ -34,6 +34,14 @@ interface Friend {
     isPending?: boolean;
 }
 
+interface Msg {
+    chatRoomId: number;
+    content: string;
+    senderId: number;
+    senderNm: string;
+    createdAt: string;
+}
+
 export default function ChatWidget() {
     const { data: userData } = UserData(["userData"], user);
     const stompClientRef = useRef<Client | null>(null);
@@ -64,7 +72,7 @@ export default function ChatWidget() {
     const [chatOpen, setChatOpen] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
     const [messages, setMessages] = useState<string[]>([]);
-    const [input, setInput] = useState('');
+    const [msgInput, setMsgInput] = useState('');
     const [tabIndex, setTabIndex] = useState(0);
     const [friendSearch, setFriendSearch] = useState('');
     const [searchResults, setSearchResults] = useState<Friend[]>([]);
@@ -170,6 +178,7 @@ export default function ChatWidget() {
     const toggleList = () => setListOpen(o => !o);
 
     const openChat = (room: ChatRoom) => {
+        console.log("채팅방 번호:", room);
         setSelectedRoom(room);
         setListOpen(false);
         setChatOpen(true);
@@ -177,19 +186,30 @@ export default function ChatWidget() {
 
     const closeChat = () => setChatOpen(false);
 
+
+    // 메시지 전송
     const sendMessage = () => {
-        if (!input.trim()) return;
+        if (!msgInput.trim()) return;
+        console.log("!!!!!!!!!!!!!!",msgInput.trim());
+        if (!selectedRoom) {
+            console.error('선택된 채팅방이 없습니다.');
+            return;
+        }
         
         stompClientRef.current?.publish({
             destination: `/pub/chat.sendMessage`,
             body: JSON.stringify({
-                chatRoomId: selectedRoom?.chatRoomId,
-                content: input.trim()
+                chatRoomId: selectedRoom.chatRoomId,
+                senderId: userData?.userId,
+                userName: userData?.userNm,
+                message: msgInput.trim()
             })
         });
         
-        setInput('');
+        setMsgInput('');
     };
+
+    
     const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
 
     // 어두운 패널과 흰색 텍스트 스타일
@@ -575,25 +595,62 @@ export default function ChatWidget() {
                                     대화를 시작해보세요
                                 </Typography>
                             ) : (
-                                messages.map((msg, i) => (
-                                    <Box 
-                                        key={i} 
-                                        sx={{ 
-                                            alignSelf: i % 2 === 0 ? 'flex-start' : 'flex-end',
-                                            maxWidth: '80%',
-                                        }}
-                                    >
-                                        <Paper
-                                            sx={{
-                                                p: 1.5,
-                                                bgcolor: i % 2 === 0 ? theme.palette.grey[800] : theme.palette.primary.main,
-                                                borderRadius: 2,
+                                messages.map((msg, i) => {
+                                    const message = JSON.parse(msg);
+                                    const isMyMessage = message.senderId === userData?.userId;
+                                    
+                                    return (
+                                        <Box 
+                                            key={i} 
+                                            sx={{ 
+                                                alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
+                                                maxWidth: '80%',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: isMyMessage ? 'flex-end' : 'flex-start',
+                                                mb: 1
                                             }}
                                         >
-                                            <Typography variant="body2">{msg}</Typography>
-                                        </Paper>
-                                    </Box>
-                                ))
+                                            {!isMyMessage ? (
+                                                <Typography 
+                                                    variant="caption" 
+                                                    sx={{ 
+                                                        color: theme.palette.grey[400],
+                                                        ml: 1,
+                                                        mb: 0.5
+                                                    }}
+                                                >
+                                                    {message.userName}
+                                                </Typography>
+                                            ) : (
+                                                <Typography 
+                                                    variant="caption" 
+                                                    sx={{ 
+                                                        color: theme.palette.grey[400],
+                                                        mr: 1,
+                                                        mb: 0.5
+                                                    }}
+                                                >
+                                                    {message.userName}
+                                                </Typography>
+                                            )}
+                                            <Paper
+                                                sx={{
+                                                    p: 1.5,
+                                                    bgcolor: isMyMessage ? theme.palette.primary.main : theme.palette.grey[800],
+                                                    borderRadius: 2,
+                                                }}
+                                            >
+                                                <Typography 
+                                                    variant="body2"
+                                                    sx={{ color: theme.palette.common.white }}
+                                                >
+                                                    {message.message}
+                                                </Typography>
+                                            </Paper>
+                                        </Box>
+                                    );
+                                })
                             )}
                             <div ref={messageEndRef} />
                         </Box>
@@ -616,8 +673,8 @@ export default function ChatWidget() {
                                 size="small"
                                 fullWidth
                                 placeholder="메시지를 입력하세요..."
-                                value={input}
-                                onChange={e => setInput(e.target.value)}
+                                value={msgInput}
+                                onChange={e => setMsgInput(e.target.value)}
                                 variant="outlined"
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
