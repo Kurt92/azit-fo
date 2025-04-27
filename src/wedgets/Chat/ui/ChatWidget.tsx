@@ -16,6 +16,7 @@ import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {user} from "@/shared/util/ApiReq/user/req";
 import {Client, IMessage} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { useQuery } from '@tanstack/react-query';
 
 interface ChatRoom {
     chatRoomId: number;
@@ -38,6 +39,7 @@ export default function ChatWidget() {
     const stompClientRef = useRef<Client | null>(null);
 
     
+
     /* 샘플 하드코딩 */
     // const [rooms] = useState<ChatRoom[]>([
     //     { chatRoomId: 1, roomNm: '성태', lastMessage: '몬헌함??', lastMessageTime: '오후 2:30', unreadCount: 3 },
@@ -45,18 +47,17 @@ export default function ChatWidget() {
     //     { chatRoomId: 3, roomNm: '11', lastMessage: 'zz', lastMessageTime: '오전 11:20', unreadCount: 1 },
     //     { chatRoomId: 4, roomNm: '22', lastMessage: 'qq', lastMessageTime: '어제', unreadCount: 0 },
     // ]);
-    let [rooms, setRooms] = useState<ChatRoom[]>([]);
+    const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
     
     // const [friends] = useState<Friend[]>([
     //     { targetId: 1, targetNm: '성태', status: 'online' },
     //     { targetId: 2, targetNm: '정민', status: 'away' },
     // ]);
-    let [friends, setFriends] = useState<Friend[]>([]);
+    const [friends, setFriends] = useState<Friend[]>([]);
 
     const theme = useTheme();
     const messageEndRef = useRef<HTMLDivElement>(null);
-
     const socketRef = useRef<WebSocket | null>(null);
 
     const [listOpen, setListOpen] = useState(false);
@@ -69,36 +70,9 @@ export default function ChatWidget() {
     const [searchResults, setSearchResults] = useState<Friend[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    
 
-    const toggleList = () => setListOpen(o => !o);
-
-    const openChat = (room: ChatRoom) => {
-        setSelectedRoom(room);
-        setListOpen(false);
-        setChatOpen(true);
-    };
-
-    const closeChat = () => setChatOpen(false);
-
-    const sendMessage = () => {
-        if (!input.trim()) return;
-        
-        stompClientRef.current?.publish({
-            destination: `/pub/chat.sendMessage`,
-            body: JSON.stringify({
-                chatRoomId: selectedRoom?.chatRoomId,
-                content: input.trim()
-            })
-        });
-        
-        setInput('');
-    };
-    const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
-
-    // 어두운 패널과 흰색 텍스트 스타일
-    const panelBg = '#2e2e2e';
-    const inputBg = '#3a3a3a';
-    const white = '#ffffff';
+    
 
     // 메시지 자동 스크롤
     useEffect(() => {
@@ -193,6 +167,35 @@ export default function ChatWidget() {
         };
     }, [chatOpen, selectedRoom?.chatRoomId]);
 
+    const toggleList = () => setListOpen(o => !o);
+
+    const openChat = (room: ChatRoom) => {
+        setSelectedRoom(room);
+        setListOpen(false);
+        setChatOpen(true);
+    };
+
+    const closeChat = () => setChatOpen(false);
+
+    const sendMessage = () => {
+        if (!input.trim()) return;
+        
+        stompClientRef.current?.publish({
+            destination: `/pub/chat.sendMessage`,
+            body: JSON.stringify({
+                chatRoomId: selectedRoom?.chatRoomId,
+                content: input.trim()
+            })
+        });
+        
+        setInput('');
+    };
+    const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
+
+    // 어두운 패널과 흰색 텍스트 스타일
+    // const panelBg = '#2e2e2e';
+    // const inputBg = '#3a3a3a';
+    // const white = '#ffffff';
 
     // 유저 검색
     const handleUserSearch = async (query: string) => {
@@ -296,194 +299,216 @@ export default function ChatWidget() {
                         <Tab label="유저 검색" />
                     </Tabs>
                     
-                    <Box sx={{ overflowY: 'auto', flex: 1 }}>
-                        {tabIndex === 0 && (
-                            <List disablePadding>
-                                {rooms.map(room => (
-                                    <ListItemButton
-                                        key={room.chatRoomId}
-                                        onDoubleClick={() => openChat(room)}
-                                        sx={{
-                                            '&:hover': { bgcolor: theme.palette.grey[800] },
-                                            borderBottom: `1px solid ${theme.palette.grey[800]}`,
-                                        }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Avatar>{room.roomNm[0]}</Avatar>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography variant="subtitle2">{room.roomNm}</Typography>
-                                                    <Typography variant="caption" sx={{ color: theme.palette.grey[400] }}>
-                                                        {room.lastMessageTime}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondary={
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography 
-                                                        variant="body2" 
-                                                        sx={{ 
-                                                            color: theme.palette.grey[400],
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                            maxWidth: '180px'
-                                                        }}
+                    <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                        {!userData ? (
+                            <Box 
+                                sx={{ 
+                                    height: '100%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    flexDirection: 'column',
+                                    gap: 2,
+                                    p: 3,
+                                    textAlign: 'center',
+                                    color: theme.palette.grey[400]
+                                }}
+                            >
+                                <Typography variant="h6">
+                                    로그인이 필요합니다
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <>
+                                {tabIndex === 0 && (
+                                    <List disablePadding>
+                                        {rooms.map(room => (
+                                            <ListItemButton
+                                                key={room.chatRoomId}
+                                                onDoubleClick={() => openChat(room)}
+                                                sx={{
+                                                    '&:hover': { bgcolor: theme.palette.grey[800] },
+                                                    borderBottom: `1px solid ${theme.palette.grey[800]}`,
+                                                }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Avatar>{room.roomNm[0]}</Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={
+                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <Typography variant="subtitle2">{room.roomNm}</Typography>
+                                                            <Typography variant="caption" sx={{ color: theme.palette.grey[400] }}>
+                                                                {room.lastMessageTime}
+                                                            </Typography>
+                                                        </Box>
+                                                    }
+                                                    secondary={
+                                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <Typography 
+                                                                variant="body2" 
+                                                                sx={{ 
+                                                                    color: theme.palette.grey[400],
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap',
+                                                                    maxWidth: '180px'
+                                                                }}
+                                                            >
+                                                                {room.lastMessage}
+                                                            </Typography>
+                                                            {room.unreadCount?.toString() && (
+                                                                <Badge
+                                                                    badgeContent={room.unreadCount}
+                                                                    color="primary"
+                                                                    sx={{ ml: 1 }}
+                                                                />
+                                                            )}
+                                                        </Box>
+                                                    }
+                                                />
+                                            </ListItemButton>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabIndex === 1 && (
+                                    <List>
+                                        {friends.map((friend: Friend) => (
+                                            <ListItemButton
+                                                key={friend.targetId}
+                                                sx={{
+                                                    '&:hover': { bgcolor: theme.palette.grey[800] },
+                                                    borderBottom: `1px solid ${theme.palette.grey[800]}`,
+                                                }}
+                                            >
+                                                <ListItemAvatar>
+                                                    <Badge
+                                                        overlap="circular"
+                                                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                                        badgeContent={
+                                                            <FiberManualRecordIcon 
+                                                                sx={{ 
+                                                                    fontSize: 12,
+                                                                    color: friend.status === 'online' 
+                                                                        ? theme.palette.success.main 
+                                                                        : friend.status === 'away'
+                                                                        ? theme.palette.warning.main
+                                                                        : theme.palette.grey[500],
+                                                                    bgcolor: theme.palette.background.paper,
+                                                                    borderRadius: '50%'
+                                                                }} 
+                                                            />
+                                                        }
                                                     >
-                                                        {room.lastMessage}
-                                                    </Typography>
-                                                    {room.unreadCount?.toString() && (
-                                                        <Badge
-                                                            badgeContent={room.unreadCount}
-                                                            color="primary"
-                                                            sx={{ ml: 1 }}
-                                                        />
-                                                    )}
-                                                </Box>
-                                            }
-                                        />
-                                    </ListItemButton>
-                                ))}
-                            </List>
-                        )}
-                        {tabIndex === 1 && (
-                            <List>
-                                {friends.map((friend: Friend) => (
-                                    <ListItemButton
-                                        key={friend.targetId}
-                                        sx={{
-                                            '&:hover': { bgcolor: theme.palette.grey[800] },
-                                            borderBottom: `1px solid ${theme.palette.grey[800]}`,
-                                        }}
-                                    >
-                                        <ListItemAvatar>
-                                            <Badge
-                                                overlap="circular"
-                                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                                badgeContent={
-                                                    <FiberManualRecordIcon 
-                                                        sx={{ 
-                                                            fontSize: 12,
+                                                        <Avatar src={friend.avatarUrl}>{friend.targetNm[0]}</Avatar>
+                                                    </Badge>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                    primary={friend.targetNm}
+                                                    secondary={friend.status === 'online' ? '온라인' : friend.status === 'away' ? '자리비움' : '오프라인'}
+                                                    secondaryTypographyProps={{
+                                                        sx: { 
                                                             color: friend.status === 'online' 
                                                                 ? theme.palette.success.main 
-                                                                : friend.status === 'away'
-                                                                ? theme.palette.warning.main
-                                                                : theme.palette.grey[500],
-                                                            bgcolor: theme.palette.background.paper,
-                                                            borderRadius: '50%'
-                                                        }} 
-                                                    />
-                                                }
-                                            >
-                                                <Avatar src={friend.avatarUrl}>{friend.targetNm[0]}</Avatar>
-                                            </Badge>
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={friend.targetNm}
-                                            secondary={friend.status === 'online' ? '온라인' : friend.status === 'away' ? '자리비움' : '오프라인'}
-                                            secondaryTypographyProps={{
-                                                sx: { 
-                                                    color: friend.status === 'online' 
-                                                        ? theme.palette.success.main 
-                                                        : theme.palette.grey[400]
-                                                }
-                                            }}
-                                        />
-                                    </ListItemButton>
-                                ))}
-                            </List>
-                        )}
-                        {tabIndex === 2 && (
-                            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                <Box sx={{ p: 2 }}>
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        placeholder="유저 검색..."
-                                        value={friendSearch}
-                                        onChange={(e) => handleUserSearch(e.target.value)}
-                                        InputProps={{
-                                            startAdornment: (
-                                                <SearchIcon sx={{ color: theme.palette.grey[400], mr: 1 }} />
-                                            ),
-                                            sx: {
-                                                bgcolor: theme.palette.grey[800],
-                                                '& fieldset': {
-                                                    borderColor: theme.palette.grey[700]
-                                                },
-                                                '&:hover fieldset': {
-                                                    borderColor: theme.palette.grey[600]
-                                                },
-                                                '& input': {
-                                                    color: theme.palette.common.white
-                                                }
-                                            }
-                                        }}
-                                    />
-                                </Box>
-
-                                <Divider sx={{ borderColor: theme.palette.grey[800] }} />
-
-                                <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                                    <List>
-                                        {searchResults.length > 0 ? (
-                                            searchResults.map(user => (
-                                                <ListItemButton
-                                                    key={user.targetId}
-                                                    sx={{
-                                                        '&:hover': { bgcolor: theme.palette.grey[800] },
-                                                        borderBottom: `1px solid ${theme.palette.grey[800]}`
+                                                                : theme.palette.grey[400]
+                                                        }
                                                     }}
-                                                >
-                                                    <ListItemAvatar>
-                                                        <Avatar src={user.avatarUrl}>{user.targetNm[0]}</Avatar>
-                                                    </ListItemAvatar>
-                                                    <ListItemText
-                                                        primary={user.targetNm}
-                                                        sx={{ color: theme.palette.common.white }}
-                                                    />
-                                                    {!user.isPending ? (
-                                                        <IconButton
-                                                            onClick={() => sendFriendRequest(user.targetId)}
-                                                            sx={{ 
-                                                                color: theme.palette.primary.main,
-                                                                '&:hover': {
-                                                                    bgcolor: `${theme.palette.primary.main}20`
-                                                                }
+                                                />
+                                            </ListItemButton>
+                                        ))}
+                                    </List>
+                                )}
+                                {tabIndex === 2 && (
+                                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                        <Box sx={{ p: 2 }}>
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                placeholder="유저 검색..."
+                                                value={friendSearch}
+                                                onChange={(e) => handleUserSearch(e.target.value)}
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <SearchIcon sx={{ color: theme.palette.grey[400], mr: 1 }} />
+                                                    ),
+                                                    sx: {
+                                                        bgcolor: theme.palette.grey[800],
+                                                        '& fieldset': {
+                                                            borderColor: theme.palette.grey[700]
+                                                        },
+                                                        '&:hover fieldset': {
+                                                            borderColor: theme.palette.grey[600]
+                                                        },
+                                                        '& input': {
+                                                            color: theme.palette.common.white
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
+
+                                        <Divider sx={{ borderColor: theme.palette.grey[800] }} />
+
+                                        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                                            <List>
+                                                {searchResults.length > 0 ? (
+                                                    searchResults.map(user => (
+                                                        <ListItemButton
+                                                            key={user.targetId}
+                                                            sx={{
+                                                                '&:hover': { bgcolor: theme.palette.grey[800] },
+                                                                borderBottom: `1px solid ${theme.palette.grey[800]}`
                                                             }}
                                                         >
-                                                            <PersonAddIcon />
-                                                        </IconButton>
+                                                            <ListItemAvatar>
+                                                                <Avatar src={user.avatarUrl}>{user.targetNm[0]}</Avatar>
+                                                            </ListItemAvatar>
+                                                            <ListItemText
+                                                                primary={user.targetNm}
+                                                                sx={{ color: theme.palette.common.white }}
+                                                            />
+                                                            {!user.isPending ? (
+                                                                <IconButton
+                                                                    onClick={() => sendFriendRequest(user.targetId)}
+                                                                    sx={{ 
+                                                                        color: theme.palette.primary.main,
+                                                                        '&:hover': {
+                                                                            bgcolor: `${theme.palette.primary.main}20`
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <PersonAddIcon />
+                                                                </IconButton>
+                                                            ) : (
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    sx={{ color: theme.palette.grey[400] }}
+                                                                >
+                                                                    요청됨
+                                                                </Typography>
+                                                            )}
+                                                        </ListItemButton>
+                                                    ))
+                                                ) : (
+                                                    friendSearch ? (
+                                                        <Box sx={{ p: 3, textAlign: 'center' }}>
+                                                            <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
+                                                                검색 결과가 없습니다
+                                                            </Typography>
+                                                        </Box>
                                                     ) : (
-                                                        <Typography
-                                                            variant="caption"
-                                                            sx={{ color: theme.palette.grey[400] }}
-                                                        >
-                                                            요청됨
-                                                        </Typography>
-                                                    )}
-                                                </ListItemButton>
-                                            ))
-                                        ) : (
-                                            friendSearch ? (
-                                                <Box sx={{ p: 3, textAlign: 'center' }}>
-                                                    <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
-                                                        검색 결과가 없습니다
-                                                    </Typography>
-                                                </Box>
-                                            ) : (
-                                                <Box sx={{ p: 3, textAlign: 'center' }}>
-                                                    <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
-                                                        유저를 검색해보세요
-                                                    </Typography>
-                                                </Box>
-                                            )
-                                        )}
-                                    </List>
-                                </Box>
-                            </Box>
+                                                        <Box sx={{ p: 3, textAlign: 'center' }}>
+                                                            <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
+                                                                유저를 검색해보세요
+                                                            </Typography>
+                                                        </Box>
+                                                    )
+                                                )}
+                                            </List>
+                                        </Box>
+                                    </Box>
+                                )}
+                            </>
                         )}
                     </Box>
                 </Paper>

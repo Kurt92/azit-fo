@@ -9,11 +9,13 @@ import { useRouter } from "next/navigation";
 import { UserData } from "@/shared/util/ReactQuery/UserData";
 import { user } from "@/shared/util/ApiReq/user/req";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 import './Header.css';
 
 export const Header: React.FC = () => {
     const { data: userData, isLoading } = UserData(["userData"], user);
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     // 1️⃣ 메뉴 오픈용 anchor 관리
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -34,16 +36,11 @@ export const Header: React.FC = () => {
                 { withCredentials: true })
             .then((res) => {
                 console.log(res)
-                router.push("/");
+                window.location.reload();
             })
             .catch(() => {
                 console.log("failed");
             })
-
-        
-        // TODO: 로그아웃 로직
-        handleCloseMenu();
-        
     };
 
     return (
@@ -55,8 +52,10 @@ export const Header: React.FC = () => {
                 <ul className="header-nav">
                     {/*<li><a href="/boss">보스고?</a></li>*/}
                     {/*<li><a href="/contact">제작 계산기</a></li>*/}
-                    <li><a href="/board">커뮤</a></li>
-                    <li><a href="/board">Azit Client Download</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/board">Comm</a></li>
+                    <li><a href="/">Azit Client Download</a></li>
+                    <li><a href="/">Notice</a></li>
                 </ul>
             </nav>
 
