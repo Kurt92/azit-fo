@@ -38,14 +38,14 @@ export default function Page() {
 
 
     let login = () => {
-        const domain = process.env.NEXT_AUTH_URL;
+        const domain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
             .post(`${domain}/auth/login`,
                 {id, password},
                 { withCredentials: true })
             .then((res) => {
                 console.log(res)
-                router.push("/main")
+                router.push("/")
             })
             .catch(() => {
                 console.log("failed");
@@ -65,7 +65,7 @@ export default function Page() {
             );
 
             if(res.status === 200) {
-                // router.push("/main")
+                // router.push("/")
                 console.log(res);
             } else console.log("Token nsot found.");
         } catch (err) {console.error("ref token find err", err);}

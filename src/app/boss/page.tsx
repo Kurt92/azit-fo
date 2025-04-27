@@ -45,7 +45,7 @@ export default function Boss() {
     useEffect(() => {
         if (!userData) return;
 
-        const domain = process.env.NEXT_API_URL;
+        const domain = process.env.NEXT_PUBLIC_API_URL;
         axios
             .get(`${domain}/boss/${userData?.accountId}`)
             .then((res) => {

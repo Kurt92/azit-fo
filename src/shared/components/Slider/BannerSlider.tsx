@@ -24,14 +24,14 @@ export default function BannerSlider() {
 
     const domain = process.env.NEXT_API_URL;
     useEffect(() => {
-        axios
-            .get(`${domain}/api/back/event`, { withCredentials: true })
-            .then((res) => {
-                setEvents(res.data.data.events || []);
-            })
-            .catch((err) => {
-                console.error("슬라이더 조회 실패:", err);
-            });
+        // axios
+        //     .get(`${domain}/api/back/event`, { withCredentials: true })
+        //     .then((res) => {
+        //         setEvents(res.data.data.events || []);
+        //     })
+        //     .catch((err) => {
+        //         console.error("슬라이더 조회 실패:", err);
+        //     });
     }, []);
 
     const defaultSlides: Event[] = [defaultSlide, defaultSlide, defaultSlide];

@@ -8,6 +8,7 @@ import CustomBtn from "@/shared/components/Button/CustomBtn";
 import { useRouter } from "next/navigation";
 import { UserData } from "@/shared/util/ReactQuery/UserData";
 import { user } from "@/shared/util/ApiReq/user/req";
+import axios from "axios";
 import './Header.css';
 
 export const Header: React.FC = () => {
@@ -25,10 +26,24 @@ export const Header: React.FC = () => {
     };
 
     const handleLogin = () => router.push("/login");
+
     const handleLogout = () => {
+        const domain = process.env.NEXT_PUBLIC_AUTH_URL;
+        axios
+            .get(`${domain}/auth/logout`,
+                { withCredentials: true })
+            .then((res) => {
+                console.log(res)
+                router.push("/");
+            })
+            .catch(() => {
+                console.log("failed");
+            })
+
+        
         // TODO: 로그아웃 로직
         handleCloseMenu();
-        router.push("/login");
+        
     };
 
     return (
@@ -40,8 +55,8 @@ export const Header: React.FC = () => {
                 <ul className="header-nav">
                     {/*<li><a href="/boss">보스고?</a></li>*/}
                     {/*<li><a href="/contact">제작 계산기</a></li>*/}
-                    <li><a href="/">tts</a></li>
                     <li><a href="/board">커뮤</a></li>
+                    <li><a href="/board">Azit Client Download</a></li>
                 </ul>
             </nav>
 

@@ -2,27 +2,7 @@
 'use client';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {
-    Box,
-    Fab,
-    Paper,
-    IconButton,
-    TextField,
-    Button,
-    Typography,
-    Grow,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemText,
-    ListItemAvatar,
-    Avatar,
-    Badge,
-    Tabs,
-    Tab,
-    useTheme,
-    Divider,
-} from '@mui/material';
+import {Box, Fab, Paper, IconButton, TextField, Button, Typography, Grow, List, ListItem, ListItemButton, ListItemText, ListItemAvatar, Avatar, Badge, Tabs, Tab, useTheme, Divider} from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
@@ -32,36 +12,47 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import axios from "axios";
+import {UserData} from "@/shared/util/ReactQuery/UserData";
+import {user} from "@/shared/util/ApiReq/user/req";
+import {Client, IMessage} from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 interface ChatRoom {
-    id: string;
-    name: string;
+    chatRoomId: number;
+    roomNm: string;
     lastMessage: string;
     lastMessageTime?: string;
     unreadCount?: number;
 }
 
 interface Friend {
-    id: string;
-    name: string;
+    targetId: number;
+    targetNm: string;
     status: 'online' | 'offline' | 'away';
     avatarUrl?: string;
     isPending?: boolean;
 }
 
 export default function ChatWidget() {
-    /* 샘플 하드코딩 */
-    const [rooms] = useState<ChatRoom[]>([
-        { id: '1', name: '성태', lastMessage: '몬헌함??', lastMessageTime: '오후 2:30', unreadCount: 3 },
-        { id: '2', name: '정민', lastMessage: '와 이게 되네?', lastMessageTime: '오후 1:15', unreadCount: 0 },
-        { id: '3', name: '11', lastMessage: 'zz', lastMessageTime: '오전 11:20', unreadCount: 1 },
-        { id: '4', name: '22', lastMessage: 'qq', lastMessageTime: '어제', unreadCount: 0 },
-    ]);
+    const { data: userData } = UserData(["userData"], user);
+    const stompClientRef = useRef<Client | null>(null);
+
     
-    const [friends] = useState<Friend[]>([
-        { id: '1', name: '성태', status: 'online' },
-        { id: '2', name: '정민', status: 'away' },
-    ]);
+    /* 샘플 하드코딩 */
+    // const [rooms] = useState<ChatRoom[]>([
+    //     { chatRoomId: 1, roomNm: '성태', lastMessage: '몬헌함??', lastMessageTime: '오후 2:30', unreadCount: 3 },
+    //     { chatRoomId: 2, roomNm: '정민', lastMessage: '와 이게 되네?', lastMessageTime: '오후 1:15', unreadCount: 0 },
+    //     { chatRoomId: 3, roomNm: '11', lastMessage: 'zz', lastMessageTime: '오전 11:20', unreadCount: 1 },
+    //     { chatRoomId: 4, roomNm: '22', lastMessage: 'qq', lastMessageTime: '어제', unreadCount: 0 },
+    // ]);
+    let [rooms, setRooms] = useState<ChatRoom[]>([]);
+
+    
+    // const [friends] = useState<Friend[]>([
+    //     { targetId: 1, targetNm: '성태', status: 'online' },
+    //     { targetId: 2, targetNm: '정민', status: 'away' },
+    // ]);
+    let [friends, setFriends] = useState<Friend[]>([]);
 
     const theme = useTheme();
     const messageEndRef = useRef<HTMLDivElement>(null);
@@ -77,6 +68,7 @@ export default function ChatWidget() {
     const [friendSearch, setFriendSearch] = useState('');
     const [searchResults, setSearchResults] = useState<Friend[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const toggleList = () => setListOpen(o => !o);
 
@@ -90,7 +82,15 @@ export default function ChatWidget() {
 
     const sendMessage = () => {
         if (!input.trim()) return;
-        socketRef.current?.send(input.trim());
+        
+        stompClientRef.current?.publish({
+            destination: `/pub/chat.sendMessage`,
+            body: JSON.stringify({
+                chatRoomId: selectedRoom?.chatRoomId,
+                content: input.trim()
+            })
+        });
+        
         setInput('');
     };
     const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
@@ -106,50 +106,93 @@ export default function ChatWidget() {
     }, [messages]);
 
     useEffect(() => {
+        if (!userData?.userId) return;
+        
+        // domain set
+        const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        
+        
         // 채팅방 조회
-        const domain = process.env.NEXT_CHAT_URL;
         axios
-            .get("/api/back/event", { withCredentials: true })
+            .get(`${chatDomain}/chat/room-list`, {
+                params: { 
+                    userId: userData.userId
+                },
+                withCredentials: true 
+            })
             .then((res) => {
-
+                setRooms(res.data);
             })
             .catch((err) => {
                 console.error(err);
             });
 
         // 친구목록 조회
-        const authDomain = process.env.NEXT_AUTH_URL;
         axios
-            .get(`${authDomain}/friend/list`, { withCredentials: true })
+            .get(`${authDomain}/friend-list`, {
+                params: { 
+                    userId: userData.userId
+                },
+                withCredentials: true
+            })
             .then((res) => {
-
+                setFriends(res.data);
             })
             .catch((err) => {
                 console.error(err);
             });
 
-    }, []);
+    }, [userData?.userId]);
 
     // 채팅 소캣 연결
+    // useEffect(() => {
+    //     if (!chatOpen) return;
+    //     console.log("소켓 연결 시도");
+
+    //     socketRef.current = new WebSocket("ws://localhost:8077/chat");
+
+    //     socketRef.current.onopen = () => {
+    //         console.log("✅ 연결됨");
+    //     };
+
+    //     socketRef.current.onmessage = (event) => {
+    //         console.log("📩 수신 메시지", event.data);
+    //         setMessages(prev => [...prev, event.data]);
+    //     };
+
+    //     return () => {
+    //         socketRef.current?.close();
+    //     };
+    // }, [chatOpen]);
+
     useEffect(() => {
         if (!chatOpen) return;
-        console.log("소켓 연결 시도");
 
-        socketRef.current = new WebSocket("ws://localhost:8077/chat");
+        console.log
 
-        socketRef.current.onopen = () => {
-            console.log("✅ 연결됨");
-        };
+        const socket = new SockJS('http://localhost:8077/ws'); // WebSocketConfig에서 설정한 endpoint
+        const stompClient = new Client({
+            webSocketFactory: () => socket,
+            debug: (str) => console.log('STOMP:', str),
+            onConnect: () => {
+                console.log('✅ STOMP 연결됨');
 
-        socketRef.current.onmessage = (event) => {
-            console.log("📩 수신 메시지", event.data);
-            setMessages(prev => [...prev, event.data]);
-        };
+                stompClient.subscribe(`/topic/chat/${selectedRoom?.chatRoomId}`, (message: IMessage) => {
+                    console.log('📩 수신 메시지', message.body);
+                    setMessages(prev => [...prev, message.body]);
+                });
+            },
+        });
+
+        stompClient.activate();
+        stompClientRef.current = stompClient;
 
         return () => {
-            socketRef.current?.close();
+            stompClient.deactivate();
         };
-    }, [chatOpen]);
+    }, [chatOpen, selectedRoom?.chatRoomId]);
+
 
     // 유저 검색
     const handleUserSearch = async (query: string) => {
@@ -161,8 +204,8 @@ export default function ChatWidget() {
                     withCredentials: true
                 });
                 
-                const friendIds = new Set(friends.map(friend => friend.id));
-                const nonFriendUsers = response.data.filter((user: any) => !friendIds.has(user.id));
+                const friendIds = new Set(friends.map(friend => friend.targetId));
+                const nonFriendUsers = response.data.filter((user: any) => !friendIds.has(user.targetId));
                 
                 setSearchResults(nonFriendUsers);
             } catch (error) {
@@ -175,18 +218,17 @@ export default function ChatWidget() {
     };
 
     // 친구 요청 보내기
-    const sendFriendRequest = async (userId: string) => {
+    const sendFriendRequest = async (userId: number) => {
         try {
-            await axios.post(`${process.env.NEXT_AUTH_URL}/friend/request`, {
-                friendId: userId
-            }, {
-                withCredentials: true
-            });
+            await axios.post(`${process.env.NEXT_AUTH_URL}/friend/request`,
+                {friendId: userId},
+                {withCredentials: true}
+            );
             
             // 검색 결과 업데이트 - 요청 상태로 변경
             setSearchResults(prev => 
                 prev.map(user => 
-                    user.id === userId 
+                    user.targetId === Number(userId)
                         ? { ...user, isPending: true }
                         : user
                 )
@@ -259,7 +301,7 @@ export default function ChatWidget() {
                             <List disablePadding>
                                 {rooms.map(room => (
                                     <ListItemButton
-                                        key={room.id}
+                                        key={room.chatRoomId}
                                         onDoubleClick={() => openChat(room)}
                                         sx={{
                                             '&:hover': { bgcolor: theme.palette.grey[800] },
@@ -267,12 +309,12 @@ export default function ChatWidget() {
                                         }}
                                     >
                                         <ListItemAvatar>
-                                            <Avatar>{room.name[0]}</Avatar>
+                                            <Avatar>{room.roomNm[0]}</Avatar>
                                         </ListItemAvatar>
                                         <ListItemText
                                             primary={
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography variant="subtitle2">{room.name}</Typography>
+                                                    <Typography variant="subtitle2">{room.roomNm}</Typography>
                                                     <Typography variant="caption" sx={{ color: theme.palette.grey[400] }}>
                                                         {room.lastMessageTime}
                                                     </Typography>
@@ -310,7 +352,7 @@ export default function ChatWidget() {
                             <List>
                                 {friends.map((friend: Friend) => (
                                     <ListItemButton
-                                        key={friend.id}
+                                        key={friend.targetId}
                                         sx={{
                                             '&:hover': { bgcolor: theme.palette.grey[800] },
                                             borderBottom: `1px solid ${theme.palette.grey[800]}`,
@@ -335,11 +377,11 @@ export default function ChatWidget() {
                                                     />
                                                 }
                                             >
-                                                <Avatar src={friend.avatarUrl}>{friend.name[0]}</Avatar>
+                                                <Avatar src={friend.avatarUrl}>{friend.targetNm[0]}</Avatar>
                                             </Badge>
                                         </ListItemAvatar>
                                         <ListItemText
-                                            primary={friend.name}
+                                            primary={friend.targetNm}
                                             secondary={friend.status === 'online' ? '온라인' : friend.status === 'away' ? '자리비움' : '오프라인'}
                                             secondaryTypographyProps={{
                                                 sx: { 
@@ -389,22 +431,22 @@ export default function ChatWidget() {
                                         {searchResults.length > 0 ? (
                                             searchResults.map(user => (
                                                 <ListItemButton
-                                                    key={user.id}
+                                                    key={user.targetId}
                                                     sx={{
                                                         '&:hover': { bgcolor: theme.palette.grey[800] },
                                                         borderBottom: `1px solid ${theme.palette.grey[800]}`
                                                     }}
                                                 >
                                                     <ListItemAvatar>
-                                                        <Avatar src={user.avatarUrl}>{user.name[0]}</Avatar>
+                                                        <Avatar src={user.avatarUrl}>{user.targetNm[0]}</Avatar>
                                                     </ListItemAvatar>
                                                     <ListItemText
-                                                        primary={user.name}
+                                                        primary={user.targetNm}
                                                         sx={{ color: theme.palette.common.white }}
                                                     />
                                                     {!user.isPending ? (
                                                         <IconButton
-                                                            onClick={() => sendFriendRequest(user.id)}
+                                                            onClick={() => sendFriendRequest(user.targetId)}
                                                             sx={{ 
                                                                 color: theme.palette.primary.main,
                                                                 '&:hover': {
@@ -478,8 +520,8 @@ export default function ChatWidget() {
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ mr: 1 }}>{selectedRoom.name[0]}</Avatar>
-                                <Typography variant="subtitle1">{selectedRoom.name}</Typography>
+                                <Avatar sx={{ mr: 1 }}>{selectedRoom.roomNm[0]}</Avatar>
+                                <Typography variant="subtitle1">{selectedRoom.roomNm}</Typography>
                             </Box>
                             <IconButton size="small" onClick={closeChat} sx={{ color: theme.palette.grey[400] }}>
                                 <CloseIcon fontSize="small" />
