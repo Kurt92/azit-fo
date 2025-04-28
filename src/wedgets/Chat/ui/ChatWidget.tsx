@@ -135,11 +135,9 @@ export default function ChatWidget() {
     //     socketRef.current = new WebSocket("ws://localhost:8077/chat");
 
     //     socketRef.current.onopen = () => {
-    //         console.log("✅ 연결됨");
     //     };
 
     //     socketRef.current.onmessage = (event) => {
-    //         console.log("📩 수신 메시지", event.data);
     //         setMessages(prev => [...prev, event.data]);
     //     };
 
@@ -158,10 +156,10 @@ export default function ChatWidget() {
             webSocketFactory: () => socket,
             debug: (str) => console.log('STOMP:', str),
             onConnect: () => {
-                console.log('✅ STOMP 연결됨');
+                console.log('STOMP 연결됨');
 
                 stompClient.subscribe(`/topic/chat/${selectedRoom?.chatRoomId}`, (message: IMessage) => {
-                    console.log('📩 수신 메시지', message.body);
+                    console.log('수신 메시지', message.body);
                     setMessages(prev => [...prev, message.body]);
                 });
             },
