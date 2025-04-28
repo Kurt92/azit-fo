@@ -1,5 +1,5 @@
-# Lost Ark - FO - next.js
-로스트아크 토이 프로젝트 프론트오피스 넥스트
+# azit-fo - next.js
+아지트 프로젝트 프론트오피스 넥스트
 
 ## Stack
 ### React
