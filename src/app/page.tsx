@@ -21,6 +21,7 @@ export default function Home() {
                     gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
                     gap: 3
                 }}>
+                    {/* test */}
                     <PopularPosts />
                     <FriendStatus />
                 </Box>
