@@ -36,10 +36,11 @@ interface Friend {
 
 interface Msg {
     chatRoomId: number;
-    content: string;
     senderId: number;
     senderNm: string;
     createdAt: string;
+    userName: string;
+    message: string;
 }
 
 export default function ChatWidget() {
@@ -71,7 +72,7 @@ export default function ChatWidget() {
     const [listOpen, setListOpen] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
-    const [messages, setMessages] = useState<string[]>([]);
+    const [messages, setMessages] = useState<Msg[]>([]);
     const [msgInput, setMsgInput] = useState('');
     const [tabIndex, setTabIndex] = useState(0);
     const [friendSearch, setFriendSearch] = useState('');
@@ -149,7 +150,24 @@ export default function ChatWidget() {
     useEffect(() => {
         if (!chatOpen) return;
 
-        console.log
+        const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
+        // 채팅 조회
+        axios
+            .get(`${chatDomain}/chat/chat-list`, {
+                params: { 
+                    chatRoomId: selectedRoom?.chatRoomId
+                },
+                withCredentials: true 
+            })
+            .then((res) => {
+                console.log("채팅 조회 결과", res.data);
+                setMessages(prev => [...prev, ...res.data]);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+
 
         const socket = new SockJS('http://localhost:8077/ws'); // WebSocketConfig에서 설정한 endpoint
         const stompClient = new Client({
@@ -160,7 +178,8 @@ export default function ChatWidget() {
 
                 stompClient.subscribe(`/topic/chat/${selectedRoom?.chatRoomId}`, (message: IMessage) => {
                     console.log('수신 메시지', message.body);
-                    setMessages(prev => [...prev, message.body]);
+                    setMessages(prev => [...prev, JSON.parse(message.body)]);
+                    console.log("메시지 업데이트", messages);
                 });
             },
         });
@@ -172,6 +191,10 @@ export default function ChatWidget() {
             stompClient.deactivate();
         };
     }, [chatOpen, selectedRoom?.chatRoomId]);
+
+    useEffect(() => {
+        console.log("messages 업데이트됨", messages);
+      }, [messages]);
 
     const toggleList = () => setListOpen(o => !o);
 
@@ -594,7 +617,7 @@ export default function ChatWidget() {
                                 </Typography>
                             ) : (
                                 messages.map((msg, i) => {
-                                    const message = JSON.parse(msg);
+                                    const message = msg;
                                     const isMyMessage = message.senderId === userData?.userId;
                                     
                                     return (
