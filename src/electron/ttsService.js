@@ -11,15 +11,13 @@ function createWindow() {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      webSecurity: false, // ✅ file:// 허용
-    },
+      contextIsolation: true
+    }
   });
 
-  win.loadURL('http://localhost:3000/electron'); // Next.js 페이지 주소
+  win.loadURL('http://localhost:3000/electron');
 }
 
-// TTS 요청 핸들러
 ipcMain.handle('request-tts', async (event, text) => {
   const url = googleTTS.getAudioUrl(text, { lang: 'ko', slow: false });
   console.log('✅ TTS URL:', url);
@@ -29,12 +27,6 @@ ipcMain.handle('request-tts', async (event, text) => {
 
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        console.error(`❌ 다운로드 실패: HTTP ${res.statusCode}`);
-        reject(new Error(`HTTP ${res.statusCode}`));
-        return;
-      }
-
       res.pipe(file);
       file.on('finish', () => {
         file.close(() => {
@@ -49,20 +41,13 @@ ipcMain.handle('request-tts', async (event, text) => {
   });
 });
 
-// 파일 삭제 핸들러
-ipcMain.handle('delete-tts', async (event, fileUrl) => {
-  const filePath = fileUrl.replace('file://', '');
-  fs.unlink(filePath, (err) => {
+ipcMain.handle('delete-tts', async (event, filePath) => {
+  const realPath = filePath.replace('file://', '');
+  fs.unlink(realPath, (err) => {
     if (err) {
       console.error('❌ 파일 삭제 실패:', err);
     } else {
-      console.log('✅ 파일 삭제 완료:', filePath);
+      console.log('✅ 파일 삭제 완료:', realPath);
     }
   });
-});
-
-app.whenReady().then(createWindow);
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
 });

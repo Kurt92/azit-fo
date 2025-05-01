@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <body>
         <QueryClientProvider client={queryClient}>
             {/* 전체 레이아웃 유지 및 조건에 따른 Header 렌더링 */}
-            {pathname === "/login" || pathname === "/login/signup" ? (
+            {  pathname.startsWith("/login") || pathname.startsWith("/electron") ? (
                 <>
                     {children}
                 </>
