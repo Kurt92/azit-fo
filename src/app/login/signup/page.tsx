@@ -59,9 +59,9 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
-        const domain = process.env.NEXT_AUTH_URL;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .post(`${domain}/signup`, { accountId, password })
+            .post(`${authDomain}/signup`, { accountId, password })
             .then((res) => {
                 console.log("Signup successful:", res);
                 alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
@@ -79,9 +79,9 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
-        const domain = process.env.NEXT_AUTH_URL;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .get(`${domain}/duplicate-check`, { params: { accountId: accountId } })
+            .get(`${authDomain}/duplicate-check`, { params: { accountId: accountId } })
             .then((res) => {
                 if (res.data) {
                     alert("이미 사용 중인 아이디입니다.");
@@ -104,9 +104,9 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
-        const domain = process.env.NEXT_AUTH_URL;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .get(`${domain}/email-verify-code-send`, {
+            .get(`${authDomain}/email-verify-code-send`, {
                 params: {
                     email: email
                 }
@@ -124,9 +124,9 @@ export default function SignupPage(): JSX.Element {
 
     // 인증번호 검증 요청
     const verifyEmailCode = () => {
-        const domain = process.env.NEXT_AUTH_URL;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .get(`${domain}/email-verify-code-check`, {
+            .get(`${authDomain}/email-verify-code-check`, {
                 params: {
                     email: email,
                     code: inputCode

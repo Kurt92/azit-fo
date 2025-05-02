@@ -168,8 +168,7 @@ export default function ChatWidget() {
             });
 
 
-
-        const socket = new SockJS('http://localhost:8077/ws'); // WebSocketConfig에서 설정한 endpoint
+        const socket = new SockJS(`${chatDomain}/ws`); // WebSocketConfig에서 설정한 endpoint
         const stompClient = new Client({
             webSocketFactory: () => socket,
             debug: (str) => console.log('STOMP:', str),

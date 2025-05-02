@@ -7,7 +7,7 @@ export default function ElectronPage() {
   const audioRef = useRef(null);
 
   const handleClick = async () => {
-    const url = await window.electronAPI.requestTTS("안녕하세요 Test 입니다. 휴먼 하하하");
+    const url = await window.electronAPI.requestTTS("안녕하세요 Test 입니다. 하찮은 휴먼 ");
     console.log('✅ URL 받음:', url);
     setAudioUrl(url);
 
@@ -24,6 +24,7 @@ export default function ElectronPage() {
   };
 
   return (
+    
     <div style={{ padding: 20 }}>
       <h1>Azit Client</h1>
       <button onClick={handleClick}>TTS 실행</button>

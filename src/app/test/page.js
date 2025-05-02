@@ -23,7 +23,7 @@ export default function electest() {
   };
 
     return (
-        <>
+      <>
         <div style={{ padding: 20 }}>
             <h1>tts 테스트</h1>
             <IconButton onClick={handleClick}>TTS 실행</IconButton>
