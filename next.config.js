@@ -10,6 +10,11 @@
 
 
 /** @type {import('next').NextConfig} */
+if (process.env.NODE_ENV === 'production') {
+    require('dotenv').config({ path: '.env.production' });
+} else {
+    require('dotenv').config();  // 기본 .env.local, .env 등 자동으로 찾아 로드
+}
 const nextConfig = {
     reactStrictMode: false, // Strict Mode 비활성화
     // .evn 에 public 붙이면 자동으로 처리됨. 따라서 주석처리
