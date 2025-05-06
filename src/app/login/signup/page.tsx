@@ -44,7 +44,7 @@ export default function SignupPage(): JSX.Element {
     //회원가입 요청
     const handleSignup = (): void => {
 
-        if (isIdValid) {
+        if (!isIdValid) {
             alert("아이디 중복 체크를 완료해주세요.");
             return;
         }
