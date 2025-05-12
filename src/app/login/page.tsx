@@ -40,7 +40,7 @@ export default function Page() {
     let login = () => {
         const domain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .post(`${domain}/auth/login`,
+            .post(`${domain}/login`,
                 {id, password},
                 { withCredentials: true })
             .then((res) => {
@@ -57,6 +57,7 @@ export default function Page() {
         // e.preventDefault();
         console.log("Submitted Data:", { id, password });
     };
+    
     const checkRefToken = async() => {
         try {
             const res = await axios.get(

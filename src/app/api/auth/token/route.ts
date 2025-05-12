@@ -26,7 +26,8 @@ export async function GET() {
     try {
         // Auth 서버에 Refresh Token을 사용해 Access Token 요청
 
-        const response = await fetch("http://localhost:8011/auth/auto-login", {
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        const response = await fetch(`${authDomain}/auto-login`, {
             method: "GET",
             credentials: "include", // 쿠키를 포함
             headers: {
