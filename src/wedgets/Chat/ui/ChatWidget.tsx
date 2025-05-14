@@ -1,7 +1,7 @@
 // components/ChatWidget.tsx
 'use client';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useMemo, useCallback} from 'react';
 import {Box, Fab, Paper, IconButton, TextField, Button, Typography, Grow, List, ListItem, ListItemButton, ListItemText, ListItemAvatar, Avatar, Badge, Tabs, Tab, useTheme, Divider} from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
@@ -16,6 +16,7 @@ import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {user} from "@/shared/util/ApiReq/user/req";
 import {Client, IMessage} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import debounce from 'lodash/debounce';
 import { useQuery } from '@tanstack/react-query';
 
 interface ChatRoom {
@@ -232,54 +233,87 @@ export default function ChatWidget() {
     
     const handleTabChange = (_: React.SyntheticEvent, newIdx: number) => setTabIndex(newIdx);
 
-    // 어두운 패널과 흰색 텍스트 스타일
-    // const panelBg = '#2e2e2e';
-    // const inputBg = '#3a3a3a';
-    // const white = '#ffffff';
+   
+
 
     // 유저 검색
-    const handleUserSearch = async (query: string) => {
-        setFriendSearch(query);
-        if (query.trim().length > 0) {
-            try {
-                const response = await axios.get(`${process.env.NEXT_AUTH_URL}/user/search`, {
-                    params: { query },
-                    withCredentials: true
-                });
-                
-                const friendIds = new Set(friends.map(friend => friend.targetId));
-                const nonFriendUsers = response.data.filter((user: any) => !friendIds.has(user.targetId));
-                
-                setSearchResults(nonFriendUsers);
-            } catch (error) {
-                console.error('유저 검색 실패:', error);
-                setSearchResults([]);
-            }
-        } else {
-            setSearchResults([]);
+    const handleUserSearch = useCallback((query: string) => {
+        if (!query.trim()) {
+          setSearchResults([]);
+          return;
         }
-    };
+      
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+      
+        axios
+            .get(`${authDomain}/user-list`, {
+                params: { 
+                    targetNm: query, userId: userData?.userId 
+                },
+                withCredentials: true
+            })
+            .then((res) => {
+                const friendIds = new Set(friends.map(friend => friend.targetId));
+                const filtered = res.data.filter((user: any) => !friendIds.has(user.targetId));
+                setSearchResults(filtered);
+            })
+            .catch((err) => {
+                console.error('유저 검색 실패:', err);
+                setSearchResults([]);
+            });
+    }, [friends, userData]); 
+
+    //유저검색 디바운스
+    const debouncedHandleUserSearch = useMemo(
+        () => debounce(handleUserSearch, 300), // 300ms 지연
+        [handleUserSearch]
+      );
 
     // 친구 요청 보내기
-    const sendFriendRequest = async (userId: number) => {
-        try {
-            await axios.post(`${process.env.NEXT_AUTH_URL}/friend/request`,
-                {friendId: userId},
-                {withCredentials: true}
-            );
-            
-            // 검색 결과 업데이트 - 요청 상태로 변경
-            setSearchResults(prev => 
-                prev.map(user => 
-                    user.targetId === Number(userId)
-                        ? { ...user, isPending: true }
-                        : user
-                )
-            );
-        } catch (error) {
-            console.error('친구 요청 실패:', error);
-        }
+    const sendFriendRequest = (userId: number) => {
+        axios
+            .get(`${process.env.NEXT_PUBLIC_AUTH_URL}/request-friend`, {
+                params: { 
+                    targetId: userId, userId: userData?.userId 
+                },
+                withCredentials: true
+            })
+            .then((res) => {
+                setSearchResults(prev => 
+                    prev.map(user => 
+                        user.targetId === Number(userId)
+                            ? { ...user, isPending: true }
+                            : user
+                    )
+                );
+            })
+            .catch((err) => {
+                console.error('친구 요청 실패:', err);
+            });
+       
     };
+
+    //친구 검색
+    // const findFriend = () => {
+        
+
+        // const authDomain = process.env.NEXT_AUTH_URL;
+        // axios
+        //     .get(`${authDomain}/user-list`, {
+        //         params: { 
+        //             targetNm: userData?.userId,
+        //             userId: userData
+        //         },
+        //         withCredentials: true 
+        //     })
+        //     .then((res) => {
+        //     })
+        //     .catch((err) => {
+        //         console.error(err);
+        //     });
+
+
+    // }
 
     return (
         <>
@@ -466,7 +500,10 @@ export default function ChatWidget() {
                                                 size="small"
                                                 placeholder="유저 검색..."
                                                 value={friendSearch}
-                                                onChange={(e) => handleUserSearch(e.target.value)}
+                                                onChange={(e) => {
+                                                    debouncedHandleUserSearch(e.target.value)
+                                                    setFriendSearch(e.target.value);
+                                                }}
                                                 InputProps={{
                                                     startAdornment: (
                                                         <SearchIcon sx={{ color: theme.palette.grey[400], mr: 1 }} />
