@@ -11,6 +11,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axios from "axios";
 import {UserData} from "@/shared/util/ReactQuery/UserData";
 import {user} from "@/shared/util/ApiReq/user/req";
@@ -39,7 +40,7 @@ interface Msg {
     chatRoomId: number;
     senderId: number;
     senderNm: string;
-    createdAt: string;
+    createDt: string;
     userName: string;
     message: string;
 }
@@ -81,8 +82,8 @@ export default function ChatWidget() {
     const [isSearching, setIsSearching] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     
-
-    
+    // 샘플 친구요청 데이터 제거 및 서버 요청으로 대체
+    const [friendRequests, setFriendRequests] = useState<{ userMappingId: number, targetId: number, targetNm: string }[]>([]);
 
     // 메시지 자동 스크롤
     useEffect(() => {
@@ -127,6 +128,23 @@ export default function ChatWidget() {
                 console.error(err);
             });
 
+    }, [userData?.userId]);
+
+    // 친구 요청 목록 조회
+    useEffect(() => {
+        if (!userData?.userId) return;
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        axios
+            .get(`${authDomain}/friend-req`, {
+                params: { userId: userData.userId },
+                withCredentials: true
+            })
+            .then(res => {
+                setFriendRequests(res.data);
+            })
+            .catch(err => {
+                console.error('친구 요청 목록 조회 실패:', err);
+            });
     }, [userData?.userId]);
 
     // 채팅 소캣 연결
@@ -217,15 +235,35 @@ export default function ChatWidget() {
             return;
         }
         
+        const message = {
+            chatRoomId: selectedRoom.chatRoomId,
+            senderId: userData?.userId,
+            userName: userData?.userNm,
+            message: msgInput.trim(),
+            createDt: new Date().toISOString()
+        };
+
         stompClientRef.current?.publish({
             destination: `/pub/chat.sendMessage`,
-            body: JSON.stringify({
-                chatRoomId: selectedRoom.chatRoomId,
-                senderId: userData?.userId,
-                userName: userData?.userNm,
-                message: msgInput.trim()
-            })
+            body: JSON.stringify(message)
         });
+
+        // 채팅방 목록의 마지막 메시지 업데이트
+        setRooms(prevRooms => 
+            prevRooms.map(room => 
+                room.chatRoomId === selectedRoom.chatRoomId
+                    ? {
+                        ...room,
+                        lastMessage: msgInput.trim(),
+                        lastMessageTime: new Date().toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        })
+                    }
+                    : room
+            )
+        );
         
         setMsgInput('');
     };
@@ -293,27 +331,41 @@ export default function ChatWidget() {
        
     };
 
-    //친구 검색
-    // const findFriend = () => {
-        
+    const acceptFriendRequest = (userMappingId: number) => {
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        axios
+        .get(`${authDomain}/request-status`, {
+            params: { 
+                userMappingId: userMappingId, 
+                status: 'ACCEPTED'
+            },
+            withCredentials: true
+        })
+        .then(() => {
+            setFriendRequests(prev => prev.filter(req => req.userMappingId !== userMappingId));
+        })
+        .catch(err => {
+            console.error('친구 요청 수락 실패:', err);
+        });
+    };
 
-        // const authDomain = process.env.NEXT_AUTH_URL;
-        // axios
-        //     .get(`${authDomain}/user-list`, {
-        //         params: { 
-        //             targetNm: userData?.userId,
-        //             userId: userData
-        //         },
-        //         withCredentials: true 
-        //     })
-        //     .then((res) => {
-        //     })
-        //     .catch((err) => {
-        //         console.error(err);
-        //     });
-
-
-    // }
+    const rejectFriendRequest = (userMappingId: number) => {
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        axios
+        .get(`${authDomain}/request-status`, {
+            params: { 
+                userMappingId: userMappingId, 
+                status: 'REJECTED'
+            },
+            withCredentials: true
+        })
+        .then(() => {
+            setFriendRequests(prev => prev.filter(req => req.userMappingId !== userMappingId));
+        })
+        .catch(err => {
+            console.error('친구 요청 거절 실패:', err);
+        });
+    };
 
     return (
         <>
@@ -523,60 +575,62 @@ export default function ChatWidget() {
                                                 }}
                                             />
                                         </Box>
-
                                         <Divider sx={{ borderColor: theme.palette.grey[800] }} />
-
                                         <Box sx={{ flex: 1, overflowY: 'auto' }}>
                                             <List>
-                                                {searchResults.length > 0 ? (
-                                                    searchResults.map(user => (
-                                                        <ListItemButton
-                                                            key={user.targetId}
-                                                            sx={{
-                                                                '&:hover': { bgcolor: theme.palette.grey[800] },
-                                                                borderBottom: `1px solid ${theme.palette.grey[800]}`
-                                                            }}
-                                                        >
-                                                            <ListItemAvatar>
-                                                                <Avatar src={user.avatarUrl}>{user.targetNm[0]}</Avatar>
-                                                            </ListItemAvatar>
-                                                            <ListItemText
-                                                                primary={user.targetNm}
-                                                                sx={{ color: theme.palette.common.white }}
-                                                            />
-                                                            {!user.isPending ? (
-                                                                <IconButton
-                                                                    onClick={() => sendFriendRequest(user.targetId)}
-                                                                    sx={{ 
-                                                                        color: theme.palette.primary.main,
-                                                                        '&:hover': {
-                                                                            bgcolor: `${theme.palette.primary.main}20`
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <PersonAddIcon />
-                                                                </IconButton>
-                                                            ) : (
-                                                                <Typography
-                                                                    variant="caption"
-                                                                    sx={{ color: theme.palette.grey[400] }}
-                                                                >
-                                                                    요청됨
-                                                                </Typography>
-                                                            )}
-                                                        </ListItemButton>
-                                                    ))
-                                                ) : (
-                                                    friendSearch ? (
-                                                        <Box sx={{ p: 3, textAlign: 'center' }}>
-                                                            <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
-                                                                검색 결과가 없습니다
-                                                            </Typography>
-                                                        </Box>
+                                                {friendSearch.trim() === '' ? (
+                                                    // 검색어가 없으면 친구요청 리스트업
+                                                    friendRequests.length > 0 ? (
+                                                        friendRequests.map(user => (
+                                                            <ListItemButton
+                                                                key={user.userMappingId}
+                                                                sx={{ '&:hover': { bgcolor: theme.palette.grey[800] }, borderBottom: `1px solid ${theme.palette.grey[800]}` }}
+                                                            >
+                                                                <ListItemAvatar>
+                                                                    <Avatar>{user.targetNm[0]}</Avatar>
+                                                                </ListItemAvatar>
+                                                                <ListItemText primary={user.targetNm} sx={{ color: theme.palette.common.white }} />
+                                                                <Button color="primary" size="small" sx={{ mr: 1 }} onClick={() => acceptFriendRequest(user.userMappingId)}>수락</Button>
+                                                                <Button color="error" size="small" onClick={() => rejectFriendRequest(user.userMappingId)}>거절</Button>
+                                                            </ListItemButton>
+                                                        ))
                                                     ) : (
                                                         <Box sx={{ p: 3, textAlign: 'center' }}>
                                                             <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
-                                                                유저를 검색해보세요
+                                                                받은 친구 요청이 없습니다
+                                                            </Typography>
+                                                        </Box>
+                                                    )
+                                                ) : (
+                                                    // 검색어가 있으면 기존 유저 검색 결과
+                                                    searchResults.length > 0 ? (
+                                                        searchResults.map(user => (
+                                                            <ListItemButton
+                                                                key={user.targetId}
+                                                                sx={{ '&:hover': { bgcolor: theme.palette.grey[800] }, borderBottom: `1px solid ${theme.palette.grey[800]}` }}
+                                                            >
+                                                                <ListItemAvatar>
+                                                                    <Avatar src={user.avatarUrl}>{user.targetNm[0]}</Avatar>
+                                                                </ListItemAvatar>
+                                                                <ListItemText primary={user.targetNm} sx={{ color: theme.palette.common.white }} />
+                                                                {!user.isPending ? (
+                                                                    <IconButton
+                                                                        onClick={() => sendFriendRequest(user.targetId)}
+                                                                        sx={{ color: theme.palette.primary.main, '&:hover': { bgcolor: `${theme.palette.primary.main}20` } }}
+                                                                    >
+                                                                        <PersonAddIcon />
+                                                                    </IconButton>
+                                                                ) : (
+                                                                    <Typography variant="caption" sx={{ color: theme.palette.grey[400] }}>
+                                                                        요청됨
+                                                                    </Typography>
+                                                                )}
+                                                            </ListItemButton>
+                                                        ))
+                                                    ) : (
+                                                        <Box sx={{ p: 3, textAlign: 'center' }}>
+                                                            <Typography variant="body2" sx={{ color: theme.palette.grey[400] }}>
+                                                                검색 결과가 없습니다
                                                             </Typography>
                                                         </Box>
                                                     )
@@ -621,7 +675,22 @@ export default function ChatWidget() {
                                 borderBottom: `1px solid ${theme.palette.grey[700]}`,
                             }}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <IconButton 
+                                    size="small" 
+                                    onClick={() => {
+                                        setChatOpen(false);
+                                        setListOpen(true);
+                                    }} 
+                                    sx={{ 
+                                        color: theme.palette.grey[400],
+                                        '&:hover': {
+                                            bgcolor: theme.palette.grey[700]
+                                        }
+                                    }}
+                                >
+                                    <ArrowBackIcon fontSize="small" />
+                                </IconButton>
                                 <Avatar sx={{ mr: 1 }}>{selectedRoom.roomNm[0]}</Avatar>
                                 <Typography variant="subtitle1">{selectedRoom.roomNm}</Typography>
                             </Box>
@@ -705,6 +774,19 @@ export default function ChatWidget() {
                                                     {message.message}
                                                 </Typography>
                                             </Paper>
+                                            <Typography 
+                                                variant="caption" 
+                                                sx={{ 
+                                                    color: theme.palette.grey[400],
+                                                    display: 'block',
+                                                    textAlign: isMyMessage ? 'right' : 'left',
+                                                    mt: 0.5,
+                                                    fontSize: '0.7rem',
+                                                    px: 1
+                                                }}
+                                            >
+                                                {message.createDt || ''}
+                                            </Typography>
                                         </Box>
                                     );
                                 })
