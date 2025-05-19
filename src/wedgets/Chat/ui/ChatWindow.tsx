@@ -42,7 +42,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <Paper
             elevation={3}
             sx={{
-                position: 'fixed',
+                position: 'static',
                 bottom: 80,
                 right: 16,
                 width: 350,
@@ -52,7 +52,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 flexDirection: 'column',
                 bgcolor: theme.palette.grey[900],
                 color: theme.palette.common.white,
-                zIndex: theme.zIndex.modal + 1,
+                zIndex: 'auto',
                 borderRadius: 2,
                 overflow: 'hidden',
             }}

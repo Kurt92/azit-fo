@@ -42,7 +42,7 @@ export const FriendList: React.FC<FriendListProps> = ({
                 {friends.map((friend) => (
                     <ListItemButton
                         key={friend.targetId}
-                        onContextMenu={(e) => handleContextMenu(e, friend.targetId)}
+                        onClick={(e) => handleContextMenu(e, friend.targetId)}
                         sx={{
                             '&:hover': { bgcolor: theme.palette.grey[800] },
                             borderBottom: `1px solid ${theme.palette.grey[800]}`,
@@ -94,10 +94,14 @@ export const FriendList: React.FC<FriendListProps> = ({
                         ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
                         : undefined
                 }
-                sx={{
-                    '& .MuiPaper-root': {
+                container={document.body}
+                PaperProps={{
+                    sx: {
                         bgcolor: theme.palette.grey[900],
                         color: theme.palette.common.white,
+                        minWidth: 160,
+                        py: 1,
+                        zIndex: 2147483647,
                     }
                 }}
             >
@@ -108,7 +112,11 @@ export const FriendList: React.FC<FriendListProps> = ({
                             handleCloseContextMenu();
                         }
                     }}
-                    sx={{ '&:hover': { bgcolor: theme.palette.grey[800] } }}
+                    sx={{
+                        py: 1.5,
+                        fontSize: 15,
+                        '&:hover': { bgcolor: theme.palette.grey[800] }
+                    }}
                 >
                     방송 보기
                 </MenuItem>
@@ -119,7 +127,11 @@ export const FriendList: React.FC<FriendListProps> = ({
                             handleCloseContextMenu();
                         }
                     }}
-                    sx={{ '&:hover': { bgcolor: theme.palette.grey[800] } }}
+                    sx={{
+                        py: 1.5,
+                        fontSize: 15,
+                        '&:hover': { bgcolor: theme.palette.grey[800] }
+                    }}
                 >
                     채팅방 생성
                 </MenuItem>
@@ -130,7 +142,9 @@ export const FriendList: React.FC<FriendListProps> = ({
                             handleCloseContextMenu();
                         }
                     }}
-                    sx={{ 
+                    sx={{
+                        py: 1.5,
+                        fontSize: 15,
                         color: theme.palette.error.main,
                         '&:hover': { bgcolor: theme.palette.grey[800] }
                     }}

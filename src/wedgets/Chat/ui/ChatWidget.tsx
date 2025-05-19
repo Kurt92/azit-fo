@@ -138,9 +138,7 @@ export default function ChatWidget() {
                 withCredentials: true
             })
             .then((res) => {
-                const friendIds = new Set(friends.map(friend => friend.targetId));
-                const filtered = res.data.filter((user: any) => !friendIds.has(user.targetId));
-                setSearchResults(filtered);
+                setSearchResults(res.data);
             })
             .catch((err) => {
                 console.error('유저 검색 실패:', err);
@@ -289,7 +287,7 @@ export default function ChatWidget() {
                         flexDirection: 'column',
                         bgcolor: theme.palette.grey[900],
                         color: theme.palette.common.white,
-                        zIndex: theme.zIndex.modal + 1,
+                        zIndex: 1000,
                         overflow: 'hidden',
                     }}
                 >
