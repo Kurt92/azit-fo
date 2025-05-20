@@ -50,10 +50,10 @@ export default function PopularPosts() {
         return (
             <Card sx={{ 
                 height: '100%', 
-                bgcolor: '#2B2D31',
+                bgcolor: '#2A2D32',
                 boxShadow: 'none',
                 border: '1px solid',
-                borderColor: 'grey.800'
+                borderColor: '#23272A'
             }}>
                 <CardContent>
                     <Typography variant="h6" component="h2" gutterBottom>
@@ -77,10 +77,21 @@ export default function PopularPosts() {
     return (
         <Card sx={{ 
             height: '100%', 
-            bgcolor: '#2B2D31',
-            boxShadow: 'none',
-            border: '1px solid',
-            borderColor: 'grey.800'
+            bgcolor: '#23272A',
+            boxShadow: '0 2px 8px 0 rgba(0,0,0,0.18)',
+            border: '1px solid #2A2D32',
+            borderRadius: 2,
+            p: 2,
+            minHeight: 300,
+            position: 'relative',
+            '&:after': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 2,
+              border: '1px solid rgba(255,255,255,0.08)',
+              pointerEvents: 'none'
+            }
         }}>
             <CardContent>
                 <Typography 
@@ -104,12 +115,13 @@ export default function PopularPosts() {
                             <ListItem 
                                 sx={{
                                     '&:hover': {
-                                        bgcolor: 'rgba(255, 255, 255, 0.03)',
+                                        bgcolor: 'rgba(255,255,255,0.03)',
                                         cursor: 'pointer'
                                     },
                                     py: 1.5,
-                                    borderRadius: 1,
-                                    transition: 'background-color 0.2s'
+                                    borderRadius: 1.5,
+                                    transition: 'background-color 0.2s',
+                                    px: 1.5
                                 }}
                             >
                                 <ListItemText
@@ -117,8 +129,9 @@ export default function PopularPosts() {
                                         <Typography 
                                             variant="body1" 
                                             sx={{ 
-                                                fontWeight: 500,
-                                                color: '#fff'
+                                                fontWeight: 600,
+                                                color: '#fff',
+                                                fontSize: '1rem'
                                             }}
                                         >
                                             {post.title}
