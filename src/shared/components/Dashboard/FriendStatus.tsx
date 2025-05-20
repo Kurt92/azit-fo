@@ -1,10 +1,12 @@
 import { Card, CardContent, Typography, List, ListItem, ListItemAvatar, ListItemText, Avatar, Box, Chip, Skeleton } from '@mui/material';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { UserData } from '@/shared/util/ReactQuery/UserData';
+import { user } from '@/shared/util/ApiReq/user/req';
 
 interface Friend {
     id: number;
-    name: string;
+    targetNm: string;
     avatar: string;
     status: 'online' | 'offline' | 'away' | 'busy';
     lastSeen?: string;
@@ -12,10 +14,10 @@ interface Friend {
 }
 
 const sampleFriends: Friend[] = [
-    { id: 1, name: "Kurt", avatar: "/img/avatars/1.jpg", status: "online", currentActivity: "몬헌 - 조시아한테 쳐맞는중" },
-    { id: 2, name: "Mors", avatar: "/img/avatars/2.jpg", status: "busy", currentActivity: "몬헌 - 알슈한테 잡혀있는중" },
-    { id: 3, name: "정민", avatar: "/img/avatars/3.jpg", status: "away", lastSeen: "10분 전" },
-    { id: 4, name: "성태", avatar: "/img/avatars/4.jpg", status: "offline", lastSeen: "1시간 전" },
+    // { id: 1, targetNm: "Kurt", avatar: "/img/avatars/1.jpg", status: "online", currentActivity: "몬헌 - 조시아한테 쳐맞는중" },
+    // { id: 2, targetNm: "Mors", avatar: "/img/avatars/2.jpg", status: "busy", currentActivity: "몬헌 - 알슈한테 잡혀있는중" },
+    // { id: 3, targetNm: "정민", avatar: "/img/avatars/3.jpg", status: "away", lastSeen: "10분 전" },
+    // { id: 4, targetNm: "성태", avatar: "/img/avatars/4.jpg", status: "offline", lastSeen: "1시간 전" },
 ];
 
 const statusColors = {
@@ -33,30 +35,28 @@ const statusText = {
 } as const;
 
 export default function FriendStatus() {
+    const { data: userData } = UserData(["userData"], user);
+
     const [friends, setFriends] = useState<Friend[]>(sampleFriends);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // TODO: API 구현 후 활성화
-        /*
-        const fetchFriends = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get('/api/friends/status', {
-                    withCredentials: true
-                });
-                setFriends(response.data.friends);
-            } catch (error) {
-                console.error('친구 상태 로딩 실패:', error);
-                setFriends(sampleFriends);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchFriends();
-        */
-    }, []);
+        if (!userData?.userId) return;
+        // 친구 접속 상태 조회
+        const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
+        axios
+            .get(`${authDomain}/friend-list`, {
+                params: { userId: userData?.userId },
+                withCredentials: true
+            })
+            .then((res) => {
+                setFriends(res.data);
+            })
+            .catch((err) => {
+                console.error('친구 상태 조회 실패:', err);
+            });
+        
+    }, [userData?.userId]);
 
     if (loading) {
         return (
@@ -130,7 +130,7 @@ export default function FriendStatus() {
                             <ListItemAvatar>
                                 <Avatar 
                                     src={friend.avatar} 
-                                    alt={friend.name}
+                                    alt={friend.targetNm}
                                     sx={{
                                         border: 2,
                                         borderColor: `${statusColors[friend.status]}.main`,
@@ -148,7 +148,7 @@ export default function FriendStatus() {
                                                 color: '#fff'
                                             }}
                                         >
-                                            {friend.name}
+                                            {friend.targetNm}
                                         </Typography>
                                         <Chip
                                             label={statusText[friend.status]}

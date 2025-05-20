@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { Box, Fab, Paper, Tabs, Tab, useTheme, Grow, Typography } from '@mui/material';
+import { Box, Fab, Paper, Tabs, Tab, useTheme, Grow, Typography, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Alert, Snackbar } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import axios from "axios";
 import { UserData } from "@/shared/util/ReactQuery/UserData";
@@ -31,6 +31,10 @@ export default function ChatWidget() {
     const [friendSearch, setFriendSearch] = useState('');
     const [searchResults, setSearchResults] = useState<IFriend[]>([]);
     const [friendRequests, setFriendRequests] = useState<IFriendRequest[]>([]);
+    const [createRoomDialog, setCreateRoomDialog] = useState(false);
+    const [newRoomName, setNewRoomName] = useState('');
+    const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
+    const [errorAlert, setErrorAlert] = useState(false);
 
     // 채팅방 조회
     useEffect(() => {
@@ -60,7 +64,7 @@ export default function ChatWidget() {
                 setFriends(res.data);
             })
             .catch((err) => {
-                console.error(err);
+                console.error('친구 상태 조회 실패:', err);
             });
     }, [userData?.userId]);
 
@@ -212,8 +216,85 @@ export default function ChatWidget() {
         console.log('방송 보기:', friendId);
     };
 
-    const handleCreateChatRoom = (friendId: number) => {
-        console.log('채팅방 생성:', friendId);
+    const handleCreateChatRoom = (friendId: number, roomName: string) => {
+        if (!userData?.userId) return;
+
+        const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
+        const targetFriend = friends.find(friend => friend.targetId === friendId);
+
+        axios
+            .post(`${chatDomain}/chat/room`, {
+                userId: userData.userId,
+                targetId: friendId,
+                roomNm: roomName
+            }, {
+                withCredentials: true,
+                validateStatus: (status) => {
+                    return status === 200; // 200만 성공으로 처리
+                }
+            })
+            .then((res) => {
+                if (!res.data) {
+                    throw new Error('서버 응답이 없습니다.');
+                }
+
+                const newRoom = {
+                    ...res.data,
+                    roomNm: roomName,
+                    lastMessage: '',
+                    lastMessageTime: new Date().toISOString()
+                };
+                setRooms(prev => [...prev, newRoom]);
+                setSelectedRoom(newRoom);
+                setListOpen(false);
+                setChatOpen(true);
+                setTabIndex(0);
+            })
+            .catch((err) => {
+                console.error('채팅방 생성 실패:', err);
+                if (err.response) {
+                    console.error('에러 데이터:', err.response.data);
+                    console.error('에러 상태:', err.response.status);
+                } else if (err.request) {
+                    console.error('응답 없음:', err.request);
+                } else {
+                    console.error('에러 메시지:', err.message);
+                }
+                setErrorAlert(true);
+            });
+    };
+
+    const handleCreateRoomConfirm = () => {
+        if (!userData?.userId || !selectedFriendId || !newRoomName.trim()) return;
+
+        const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
+
+        axios
+            .post(`${chatDomain}/chat/room`, {
+                userId: userData.userId,
+                targetId: selectedFriendId,
+                roomNm: newRoomName.trim()
+            }, {
+                withCredentials: true
+            })
+            .then((res) => {
+                setRooms(prev => [...prev, res.data]);
+                setSelectedRoom(res.data);
+                setListOpen(false);
+                setChatOpen(true);
+                setCreateRoomDialog(false);
+                setNewRoomName('');
+                setSelectedFriendId(null);
+            })
+            .catch((err) => {
+                console.error('채팅방 생성 실패:', err);
+            });
+    };
+
+    const handleCreateRoomCancel = () => {
+        setCreateRoomDialog(false);
+        setNewRoomName('');
+        setSelectedFriendId(null);
     };
 
     const handleDeleteFriend = (friendId: number) => {
@@ -242,11 +323,7 @@ export default function ChatWidget() {
                     ? {
                         ...room,
                         lastMessage: message,
-                        lastMessageTime: new Date().toLocaleTimeString('ko-KR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                        })
+                        lastMessageTime: new Date().toISOString()
                     }
                     : room
             )
@@ -273,101 +350,113 @@ export default function ChatWidget() {
             </Fab>
 
             <Grow in={listOpen} mountOnEnter unmountOnExit style={{ transformOrigin: 'right bottom' }}>
-                <Paper
-                    elevation={3}
+                <Box
                     sx={{
                         position: 'fixed',
-                        borderRadius: 2,
-                        bottom: 80,
-                        right: 16,
-                        width: 350,
-                        height: 600,
-                        maxHeight: 600,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        bgcolor: theme.palette.grey[900],
-                        color: theme.palette.common.white,
-                        zIndex: 1000,
-                        overflow: 'hidden',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        zIndex: theme.zIndex.modal,
                     }}
+                    onClick={() => setListOpen(false)}
                 >
-                    <Tabs
-                        value={tabIndex}
-                        onChange={handleTabChange}
-                        variant="fullWidth"
+                    <Paper
+                        elevation={3}
                         sx={{
-                            borderBottom: 1,
-                            borderColor: 'divider',
-                            '& .MuiTab-root': {
-                                color: theme.palette.grey[400],
-                                '&.Mui-selected': {
-                                    color: theme.palette.primary.main,
-                                }
-                            }
+                            position: 'fixed',
+                            borderRadius: 2,
+                            bottom: 80,
+                            right: 16,
+                            width: 350,
+                            height: 600,
+                            maxHeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            bgcolor: theme.palette.grey[900],
+                            color: theme.palette.common.white,
+                            zIndex: 1000,
+                            overflow: 'hidden',
                         }}
+                        onClick={e => e.stopPropagation()}
                     >
-                        <Tab label="채팅방" />
-                        <Tab label="친구" />
-                        <Tab label="유저 검색" />
-                    </Tabs>
-                    
-                    <Box sx={{ flex: 1, overflowY: 'auto' }}>
-                        {!userData ? (
-                            <Box 
-                                sx={{ 
-                                    height: '100%', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    flexDirection: 'column',
-                                    gap: 2,
-                                    p: 3,
-                                    textAlign: 'center',
-                                    color: theme.palette.grey[400]
-                                }}
-                            >
-                                <Typography variant="h6">
-                                    로그인이 필요합니다
-                                </Typography>
-                            </Box>
-                        ) : (
-                            <>
-                                {tabIndex === 0 && (
-                                    <ChatRoomList
-                                        rooms={rooms}
-                                        onRoomSelect={(room) => {
-                                            setSelectedRoom(room);
-                                            setListOpen(false);
-                                            setChatOpen(true);
-                                        }}
-                                    />
-                                )}
-                                {tabIndex === 1 && (
-                                    <FriendList
-                                        friends={friends}
-                                        onViewBroadcast={handleViewBroadcast}
-                                        onCreateChatRoom={handleCreateChatRoom}
-                                        onDeleteFriend={handleDeleteFriend}
-                                    />
-                                )}
-                                {tabIndex === 2 && (
-                                    <UserSearch
-                                        friendSearch={friendSearch}
-                                        onSearchChange={(value) => {
-                                            debouncedHandleUserSearch(value);
-                                            setFriendSearch(value);
-                                        }}
-                                        searchResults={searchResults}
-                                        friendRequests={friendRequests}
-                                        onSendFriendRequest={handleSendFriendRequest}
-                                        onAcceptFriendRequest={handleAcceptFriendRequest}
-                                        onRejectFriendRequest={handleRejectFriendRequest}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </Box>
-                </Paper>
+                        <Tabs
+                            value={tabIndex}
+                            onChange={handleTabChange}
+                            variant="fullWidth"
+                            sx={{
+                                borderBottom: 1,
+                                borderColor: 'divider',
+                                '& .MuiTab-root': {
+                                    color: theme.palette.grey[400],
+                                    '&.Mui-selected': {
+                                        color: theme.palette.primary.main,
+                                    }
+                                }
+                            }}
+                        >
+                            <Tab label="채팅방" />
+                            <Tab label="친구" />
+                            <Tab label="유저 검색" />
+                        </Tabs>
+                        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                            {!userData ? (
+                                <Box 
+                                    sx={{ 
+                                        height: '100%', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        flexDirection: 'column',
+                                        gap: 2,
+                                        p: 3,
+                                        textAlign: 'center',
+                                        color: theme.palette.grey[400]
+                                    }}
+                                >
+                                    <Typography variant="h6">
+                                        로그인이 필요합니다
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <>
+                                    {tabIndex === 0 && (
+                                        <ChatRoomList
+                                            rooms={rooms}
+                                            onRoomSelect={(room) => {
+                                                setSelectedRoom(room);
+                                                setListOpen(false);
+                                                setChatOpen(true);
+                                            }}
+                                        />
+                                    )}
+                                    {tabIndex === 1 && (
+                                        <FriendList
+                                            friends={friends}
+                                            onViewBroadcast={handleViewBroadcast}
+                                            onCreateChatRoom={handleCreateChatRoom}
+                                            onDeleteFriend={handleDeleteFriend}
+                                        />
+                                    )}
+                                    {tabIndex === 2 && (
+                                        <UserSearch
+                                            friendSearch={friendSearch}
+                                            onSearchChange={(value) => {
+                                                debouncedHandleUserSearch(value);
+                                                setFriendSearch(value);
+                                            }}
+                                            searchResults={searchResults}
+                                            friendRequests={friendRequests}
+                                            onSendFriendRequest={handleSendFriendRequest}
+                                            onAcceptFriendRequest={handleAcceptFriendRequest}
+                                            onRejectFriendRequest={handleRejectFriendRequest}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </Box>
+                    </Paper>
+                </Box>
             </Grow>
 
             {selectedRoom && chatOpen && (
@@ -386,6 +475,48 @@ export default function ChatWidget() {
                     onSendMessage={handleSendMessage}
                 />
             )}
+
+            <Dialog open={createRoomDialog} onClose={handleCreateRoomCancel}>
+                <DialogTitle>새로운 채팅방 만들기</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="채팅방 이름"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={newRoomName}
+                        onChange={(e) => setNewRoomName(e.target.value)}
+                        placeholder="채팅방 이름을 입력하세요"
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCreateRoomCancel}>취소</Button>
+                    <Button 
+                        onClick={handleCreateRoomConfirm}
+                        disabled={!newRoomName.trim()}
+                        variant="contained"
+                    >
+                        생성
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar 
+                open={errorAlert} 
+                autoHideDuration={3000} 
+                onClose={() => setErrorAlert(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={() => setErrorAlert(false)} 
+                    severity="error" 
+                    sx={{ width: '100%' }}
+                >
+                    채팅방 생성에 실패했습니다.
+                </Alert>
+            </Snackbar>
         </>
     );
 }

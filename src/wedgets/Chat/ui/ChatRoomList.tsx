@@ -1,11 +1,22 @@
 import React from 'react';
 import { List, ListItemButton, ListItemAvatar, ListItemText, Avatar, Badge, Box, Typography, useTheme } from '@mui/material';
 import { IChatRoom } from '@/shared/types/ChatInterface';
+import dayjs from 'dayjs';
 
 interface ChatRoomListProps {
     rooms: IChatRoom[];
     onRoomSelect: (room: IChatRoom) => void;
 }
+
+const getTimeLabel = (isoString?: string) => {
+    if (!isoString) return '';
+    const date = dayjs(isoString);
+    const today = dayjs();
+    const yesterday = dayjs().subtract(1, 'day');
+    if (date.isSame(today, 'day')) return date.format('HH:mm');
+    if (date.isSame(yesterday, 'day')) return '어제';
+    return date.format('YYYY-MM-DD');
+};
 
 export const ChatRoomList: React.FC<ChatRoomListProps> = ({
     rooms,
@@ -32,7 +43,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Typography variant="subtitle2">{room.roomNm}</Typography>
                                 <Typography variant="caption" sx={{ color: theme.palette.grey[400] }}>
-                                    {room.lastMessageTime}
+                                    {getTimeLabel(room.lastMessageTime)}
                                 </Typography>
                             </Box>
                         }

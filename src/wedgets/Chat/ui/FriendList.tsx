@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { List, ListItemButton, ListItemAvatar, ListItemText, Avatar, Badge, Menu, MenuItem, useTheme } from '@mui/material';
+import { List, ListItemButton, ListItemAvatar, ListItemText, Avatar, Badge, Menu, MenuItem, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import { IFriend } from '@/shared/types/ChatInterface';
 
 interface FriendListProps {
     friends: IFriend[];
     onViewBroadcast: (friendId: number) => void;
-    onCreateChatRoom: (friendId: number) => void;
+    onCreateChatRoom: (friendId: number, roomName: string) => void;
     onDeleteFriend: (friendId: number) => void;
 }
 
@@ -22,6 +22,9 @@ export const FriendList: React.FC<FriendListProps> = ({
         mouseY: number;
         friendId: number | null;
     } | null>(null);
+    const [createRoomDialog, setCreateRoomDialog] = useState(false);
+    const [newRoomName, setNewRoomName] = useState('');
+    const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
 
     const handleContextMenu = (event: React.MouseEvent, friendId: number) => {
         event.preventDefault();
@@ -34,6 +37,29 @@ export const FriendList: React.FC<FriendListProps> = ({
 
     const handleCloseContextMenu = () => {
         setContextMenu(null);
+    };
+
+    const handleCreateRoomClick = () => {
+        if (contextMenu?.friendId) {
+            setSelectedFriendId(contextMenu.friendId);
+            setCreateRoomDialog(true);
+            handleCloseContextMenu();
+        }
+    };
+
+    const handleCreateRoomConfirm = () => {
+        if (selectedFriendId && newRoomName.trim()) {
+            onCreateChatRoom(selectedFriendId, newRoomName.trim());
+            setCreateRoomDialog(false);
+            setNewRoomName('');
+            setSelectedFriendId(null);
+        }
+    };
+
+    const handleCreateRoomCancel = () => {
+        setCreateRoomDialog(false);
+        setNewRoomName('');
+        setSelectedFriendId(null);
     };
 
     return (
@@ -121,12 +147,7 @@ export const FriendList: React.FC<FriendListProps> = ({
                     방송 보기
                 </MenuItem>
                 <MenuItem 
-                    onClick={() => {
-                        if (contextMenu?.friendId) {
-                            onCreateChatRoom(contextMenu.friendId);
-                            handleCloseContextMenu();
-                        }
-                    }}
+                    onClick={handleCreateRoomClick}
                     sx={{
                         py: 1.5,
                         fontSize: 15,
@@ -152,6 +173,65 @@ export const FriendList: React.FC<FriendListProps> = ({
                     친구 삭제
                 </MenuItem>
             </Menu>
+
+            <Dialog 
+                open={createRoomDialog} 
+                onClose={handleCreateRoomCancel}
+                PaperProps={{
+                    sx: {
+                        bgcolor: theme.palette.grey[900],
+                        color: theme.palette.common.white,
+                    }
+                }}
+            >
+                <DialogTitle>새로운 채팅방 만들기</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="채팅방 이름"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={newRoomName}
+                        onChange={(e) => setNewRoomName(e.target.value)}
+                        placeholder="채팅방 이름을 입력하세요"
+                        sx={{
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                                color: theme.palette.common.white,
+                                '& fieldset': {
+                                    borderColor: theme.palette.grey[700],
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.grey[600],
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            '& .MuiInputLabel-root': {
+                                color: theme.palette.grey[400],
+                            },
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button 
+                        onClick={handleCreateRoomCancel}
+                        sx={{ color: theme.palette.grey[400] }}
+                    >
+                        취소
+                    </Button>
+                    <Button 
+                        onClick={handleCreateRoomConfirm}
+                        disabled={!newRoomName.trim()}
+                        variant="contained"
+                    >
+                        생성
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }; 

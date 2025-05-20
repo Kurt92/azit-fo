@@ -4,6 +4,7 @@ import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { IChatRoom, IMessage } from '@/shared/types/ChatInterface';
+import dayjs from 'dayjs';
 
 interface ChatWindowProps {
     room: IChatRoom;
@@ -13,6 +14,16 @@ interface ChatWindowProps {
     onBack: () => void;
     onSendMessage: (message: string) => void;
 }
+
+const getDateLabel = (isoString: string) => {
+    const date = dayjs(isoString);
+    const today = dayjs();
+    const yesterday = dayjs().subtract(1, 'day');
+
+    if (date.isSame(today, 'day')) return '오늘';
+    if (date.isSame(yesterday, 'day')) return '어제';
+    return date.format('YYYY-MM-DD');
+};
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
     room,
@@ -42,7 +53,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <Paper
             elevation={3}
             sx={{
-                position: 'static',
+                position: 'fixed',
                 bottom: 80,
                 right: 16,
                 width: 350,
@@ -52,7 +63,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 flexDirection: 'column',
                 bgcolor: theme.palette.grey[900],
                 color: theme.palette.common.white,
-                zIndex: 'auto',
+                zIndex: 1000,
                 borderRadius: 2,
                 overflow: 'hidden',
             }}
@@ -114,15 +125,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 ) : (
                     messages.map((msg, i) => {
                         const isMyMessage = msg.senderId === currentUserId;
-                        const dateParts = msg.createDt ? msg.createDt.split(' ') : [''];
-                        const currentDate = dateParts[0];
-                        const prevDateParts = i > 0 && messages[i - 1].createDt ? messages[i - 1].createDt.split(' ') : [''];
-                        const prevDate = prevDateParts[0];
-                        const showDateDivider = prevDate !== currentDate && currentDate !== '';
-                        
-                        // 오늘 날짜인지 확인 (시간만 있는 경우가 오늘)
-                        const displayDate = dateParts.length === 1 ? '오늘' : currentDate;
-                        
+                        const currentLabel = getDateLabel(msg.createDt);
+                        const prevLabel = i > 0 ? getDateLabel(messages[i - 1].createDt) : null;
+                        const showDateDivider = i === 0 || prevLabel !== currentLabel;
                         return (
                             <React.Fragment key={i}>
                                 {showDateDivider && (
@@ -144,7 +149,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                                                 whiteSpace: 'nowrap'
                                             }}
                                         >
-                                            {displayDate}
+                                            {currentLabel}
                                         </Typography>
                                     </Box>
                                 )}
@@ -194,7 +199,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                                             px: 1
                                         }}
                                     >
-                                        {msg.createDt || ''}
+                                        {dayjs(msg.createDt).format('HH:mm')}
                                     </Typography>
                                 </Box>
                             </React.Fragment>

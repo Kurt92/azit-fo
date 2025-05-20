@@ -18,7 +18,7 @@ export const Header: React.FC = () => {
                     {/*<li><a href="/contact">제작 계산기</a></li>*/}
                     <li><a href="/">Home</a></li>
                     <li><a href="/board">Comm</a></li>
-                    <li><a href="/">Azit Client Download</a></li>
+                    <li><a href="/download">Azit Client Download</a></li>
                     <li><a href="/">Notice</a></li>
                 </ul>
             </nav>
