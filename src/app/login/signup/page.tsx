@@ -32,6 +32,7 @@ export default function SignupPage(): JSX.Element {
     const [password, setPassword] = useState<string>(""); // 비밀번호
     const [confirmPassword, setConfirmPassword] = useState<string>(""); // 비밀번호 확인
     const [email, setEmail] = useState<string>(""); // 이메일
+    const [userNm, setUserNm] = useState<string>(""); // 이름
     const [isIdValid, setIsIdValid] = useState<boolean | null>(null); // 중복 체크 결과
     const [isValidEmail, setIsIdValEmail] = useState<boolean | null>(null);
     const router = useRouter();
@@ -43,7 +44,6 @@ export default function SignupPage(): JSX.Element {
 
     //회원가입 요청
     const handleSignup = (): void => {
-
         if (!isIdValid) {
             alert("아이디 중복 체크를 완료해주세요.");
             return;
@@ -59,9 +59,14 @@ export default function SignupPage(): JSX.Element {
             return;
         }
 
+        if(!userNm.trim()) {
+            alert("이름을 입력해주세요.");
+            return;
+        }
+
         const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .post(`${authDomain}/signup`, { accountId, password })
+            .post(`${authDomain}/signup`, { accountId, password, userNm })
             .then((res) => {
                 console.log("Signup successful:", res);
                 alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
@@ -243,6 +248,19 @@ export default function SignupPage(): JSX.Element {
                             value={confirmPassword}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 setConfirmPassword(e.target.value)
+                            }
+                            fullWidth
+                            sx={{
+                                backgroundColor: "background.default",
+                                borderRadius: "4px",
+                            }}
+                        />
+                        <TextField
+                            label="이름"
+                            variant="filled"
+                            value={userNm}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                setUserNm(e.target.value)
                             }
                             fullWidth
                             sx={{
