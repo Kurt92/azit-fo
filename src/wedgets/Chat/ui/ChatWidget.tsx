@@ -44,7 +44,7 @@ export default function ChatWidget() {
         const authDomain = process.env.NEXT_PUBLIC_AUTH_URL;
         
         axios
-            .get(`${chatDomain}/chat/room-list`, {
+            .get(`${chatDomain}/room-list`, {
                 params: { userId: userData.userId },
                 withCredentials: true 
             })
@@ -92,7 +92,7 @@ export default function ChatWidget() {
         const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
         
         axios
-            .get(`${chatDomain}/chat/chat-list`, {
+            .get(`${chatDomain}/chat-list`, {
                 params: { chatRoomId: selectedRoom.chatRoomId },
                 withCredentials: true 
             })
@@ -223,7 +223,7 @@ export default function ChatWidget() {
         const targetFriend = friends.find(friend => friend.targetId === friendId);
 
         axios
-            .post(`${chatDomain}/chat/room`, {
+            .post(`${chatDomain}/room`, {
                 userId: userData.userId,
                 targetId: friendId,
                 roomNm: roomName
