@@ -14,7 +14,7 @@ export const AvatarArea: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
-    // 임시 알람 데이터 (실제로는 API에서 가져와야 함)
+    // 임시 알람 샘플
     const [notifications] = useState([
         { id: 1, message: "새로운 댓글이 달렸습니다", time: "5분 전" },
         { id: 2, message: "게시글이 좋아요를 받았습니다", time: "1시간 전" },
@@ -33,7 +33,7 @@ export const AvatarArea: React.FC = () => {
     const handleLogout = () => {
         const domain = process.env.NEXT_PUBLIC_AUTH_URL;
         axios
-            .get(`${domain}/auth/logout`,
+            .get(`${domain}/logout`,
                 { withCredentials: true })
             .then((res) => {
                 window.location.reload();
