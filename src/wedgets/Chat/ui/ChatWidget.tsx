@@ -35,6 +35,7 @@ export default function ChatWidget() {
     const [newRoomName, setNewRoomName] = useState('');
     const [selectedFriendId, setSelectedFriendId] = useState<number | null>(null);
     const [errorAlert, setErrorAlert] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     // 채팅방 조회
     useEffect(() => {
@@ -50,6 +51,10 @@ export default function ChatWidget() {
             })
             .then((res) => {
                 setRooms(res.data);
+                // 안읽은 메시지 수 계산
+                const totalUnread = res.data.reduce((sum: number, room: IChatRoom) => 
+                    sum + (room.unreadCount || 0), 0);
+                setUnreadCount(totalUnread);
             })
             .catch((err) => {
                 console.error(err);
@@ -103,14 +108,23 @@ export default function ChatWidget() {
                 console.error(err);
             });
 
-        const socket = new SockJS(`${chatDomain}/ws`);
+        const socket = new SockJS(`${chatDomain}/ws?userId=${userData?.userId}`);
         const stompClient = new Client({
             webSocketFactory: () => socket,
+            connectHeaders: {
+                "userId": userData?.userId?.toString() || '',
+            },
             debug: (str) => console.log('STOMP:', str),
             onConnect: () => {
                 console.log('STOMP 연결됨');
                 stompClient.subscribe(`/topic/chat/${selectedRoom.chatRoomId}`, (message: StompMessage) => {
-                    setMessages(prev => [...prev, JSON.parse(message.body)]);
+                    const newMessage = JSON.parse(message.body);
+                    setMessages(prev => [...prev, newMessage]);
+                    
+                    // 현재 채팅방이 열려있지 않을 때만 안읽은 메시지 수 증가
+                    if (!chatOpen) {
+                        setUnreadCount(prev => prev + 1);
+                    }
                 });
             },
         });
@@ -230,7 +244,7 @@ export default function ChatWidget() {
             }, {
                 withCredentials: true,
                 validateStatus: (status) => {
-                    return status === 200; // 200만 성공으로 처리
+                    return status === 200;
                 }
             })
             .then((res) => {
@@ -242,7 +256,8 @@ export default function ChatWidget() {
                     ...res.data,
                     roomNm: roomName,
                     lastMessage: '',
-                    lastMessageTime: new Date().toISOString()
+                    lastMessageTime: new Date().toISOString(),
+                    unreadCount: 0
                 };
                 setRooms(prev => [...prev, newRoom]);
                 setSelectedRoom(newRoom);
@@ -262,6 +277,30 @@ export default function ChatWidget() {
                 }
                 setErrorAlert(true);
             });
+    };
+
+    // 채팅방 선택 시 채팅방 정보 업데이트
+    const handleRoomSelect = (room: IChatRoom) => {
+        const chatDomain = process.env.NEXT_PUBLIC_CHAT_URL;
+        
+        // 채팅방 목록 다시 조회하여 unreadCount 업데이트
+        axios.get(`${chatDomain}/room-list`, {
+            params: { userId: userData?.userId },
+            withCredentials: true 
+        })
+        .then((res) => {
+            setRooms(res.data);
+            const totalUnread = res.data.reduce((sum: number, room: IChatRoom) => 
+                sum + (room.unreadCount || 0), 0);
+            setUnreadCount(totalUnread);
+            
+            setSelectedRoom(room);
+            setListOpen(false);
+            setChatOpen(true);
+        })
+        .catch((err) => {
+            console.error('채팅방 목록 조회 실패:', err);
+        });
     };
 
     const handleCreateRoomConfirm = () => {
@@ -347,6 +386,27 @@ export default function ChatWidget() {
                 }}
             >
                 <ChatIcon />
+                {unreadCount > 0 && (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: -4,
+                            right: -4,
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: 20,
+                            height: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                    </Box>
+                )}
             </Fab>
 
             <Grow in={listOpen} mountOnEnter unmountOnExit style={{ transformOrigin: 'right bottom' }}>
@@ -423,11 +483,7 @@ export default function ChatWidget() {
                                     {tabIndex === 0 && (
                                         <ChatRoomList
                                             rooms={rooms}
-                                            onRoomSelect={(room) => {
-                                                setSelectedRoom(room);
-                                                setListOpen(false);
-                                                setChatOpen(true);
-                                            }}
+                                            onRoomSelect={handleRoomSelect}
                                         />
                                     )}
                                     {tabIndex === 1 && (

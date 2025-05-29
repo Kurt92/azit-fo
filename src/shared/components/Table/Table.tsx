@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
     Table,
     TableBody,
@@ -12,10 +12,11 @@ import {
 
 export interface Post {
     id: number;
-    title: string;
+    title: ReactNode;
+    titleText: string;  // 검색용 텍스트 필드
     author: string;
     date: string;
-    views: number;
+    views: number | string;
     category?: string;
 }
 

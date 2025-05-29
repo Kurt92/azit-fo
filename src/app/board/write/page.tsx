@@ -1,10 +1,12 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { Box, Container } from '@mui/material';
-import BoardList from '@/wedgets/Board/ui/BoardList';
+import BoardWrite from '@/wedgets/Board/ui/BoardWrite';
 
-export default function Board() {
+export default function BoardWritePage() {
+    const categories = ['전체', '오버워치', '몬스터헌터', '로스트아크', '리그오브레전드'];
+
     return (
         <Box sx={{ 
             minHeight: '100vh', 
@@ -13,7 +15,7 @@ export default function Board() {
             pb: 4 
         }}>
             <Container maxWidth="lg">
-                <BoardList />
+                <BoardWrite categories={categories} />
             </Container>
         </Box>
     );
